@@ -5,6 +5,7 @@ allowBuilds:
   '@parcel/watcher': false
   esbuild: false
   sharp: false
+  workerd: true
 
 minimumReleaseAge: 0
 

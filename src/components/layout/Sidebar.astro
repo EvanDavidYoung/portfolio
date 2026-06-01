@@ -13,9 +13,9 @@ const navItems = [
     active: currentPath === '/projects',
   },
   {
-    label: 'Life Blog',
-    href: '/why-i-quit',
-    active: currentPath === '/why-i-quit' || currentPath === '/one-year-in-taiwan',
+    label: 'Chinese',
+    href: '/chinese-language-learning',
+    active: currentPath === '/chinese-language-learning' || currentPath === '/one-year-in-taiwan',
   },
 ]
 ---
@@ -55,7 +55,17 @@ const navItems = [
 
   @media (max-width: 768px) {
     .sidebar {
-      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      flex-direction: row;
+      gap: 1.5rem;
+      padding: 0.875rem 1.35rem;
+      background-color: var(--bg);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      transition: background-color 0.2s ease-out;
     }
   }
 </style>

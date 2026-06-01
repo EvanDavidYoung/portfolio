@@ -19,6 +19,12 @@
   html.dark {
     color-scheme: dark;
   }
+
+  /* Suppress background-color transition during initial load so slow CSS downloads don't animate a flash */
+  html.no-transition,
+  html.no-transition * {
+    transition: none !important;
+  }
 </style>
 
 <script is:inline>
@@ -118,35 +124,37 @@
       }
     }
 
+    // Suppress transitions on initial load so slow CSS downloads can't animate a flash
+    document.documentElement.classList.add('no-transition')
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.documentElement.classList.remove('no-transition')
+      })
+    })
+
     // Initialize theme manager
     window.ThemeManager.init()
 
-    const applyTheme = () => {
+    // Copy theme class to incoming document before swap — prevents flash during navigation
+    document.addEventListener('astro:before-swap', (e) => {
       if (window.ThemeManager) {
         const theme = window.ThemeManager.getEffectiveTheme()
-        window.ThemeManager.applyTheme(theme)
+        e.newDocument.documentElement.classList.remove('light', 'dark')
+        e.newDocument.documentElement.classList.add(theme)
       }
-    }
+    })
 
-    // Listen for navigation events
-    document.addEventListener('astro:before-preparation', applyTheme)
-
-    // Apply theme after DOM changes (both swap and page load)
-    const applyThemeAfterNavigation = () => {
+    // Re-initialize after swap in case ThemeManager state needs refresh
+    document.addEventListener('astro:after-swap', () => {
       if (window.ThemeManager) {
-        const currentTheme = window.ThemeManager.getEffectiveTheme()
-        const appliedTheme = getAppliedTheme()
-
-        if (currentTheme !== appliedTheme) {
-          // Use requestAnimationFrame to ensure theme is applied in the next frame, avoiding conflicts with view transition
-          requestAnimationFrame(() => {
-            window.ThemeManager.applyTheme(currentTheme)
-          })
-        }
+        window.ThemeManager.applyTheme(window.ThemeManager.getEffectiveTheme())
       }
-    }
+    })
 
-    document.addEventListener('astro:after-swap', applyThemeAfterNavigation)
-    document.addEventListener('astro:page-load', applyThemeAfterNavigation)
+    document.addEventListener('astro:page-load', () => {
+      if (window.ThemeManager) {
+        window.ThemeManager.applyTheme(window.ThemeManager.getEffectiveTheme())
+      }
+    })
   })()
 </script>

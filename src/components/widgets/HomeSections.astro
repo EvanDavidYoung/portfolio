@@ -1,0 +1,168 @@
+---
+---
+
+<div class="home-sections">
+  <div class="sections-grid">
+    <section class="col">
+      <h3 class="col-header">Work Projects</h3>
+      <div class="project">
+        <a
+          class="project-title"
+          href="https://www.bloombergmedia.com/press/bloomberg-media-launches-bloomberg-live-qa/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Live QA</a>
+        <p class="project-desc">
+          Engineered a live audio platform (Next.js/Node.js) leveraging WebRTC-based audio and
+          real-time chat APIs, scaling to 10k+ concurrent global listeners.
+        </p>
+      </div>
+      <div class="project">
+        <span class="project-title">Vertical Video Player</span>
+        <p class="project-desc">
+          Launched a vertical video product for Bloomberg.com's web player, enabling a new
+          mobile-first content format with custom GTM event tracking for editorial analytics.
+        </p>
+      </div>
+    </section>
+
+    <section class="col">
+      <h3 class="col-header">Personal Projects</h3>
+      <div class="project">
+        <span class="project-title">Voice Transcription & LLM Pipeline</span>
+        <p class="project-desc">
+          Self-hosted a Qwen vLLM instance on Modal, integrated with a Slack chatbot that supports
+          tool-calling into the transcription endpoint.
+        </p>
+      </div>
+      <div class="project">
+        <span class="project-title">File Mover</span>
+        <p class="project-desc">
+          Helps you organize your files just the way you like. Involves you in the process enough
+          for you to know where the files are.
+        </p>
+      </div>
+    </section>
+
+    <section class="col">
+      <h3 class="col-header">Chinese</h3>
+      <div class="project">
+        <span class="project-title">Dashboard</span>
+        <p class="project-desc">Live Chinese progress stats 📈</p>
+      </div>
+    </section>
+  </div>
+
+  <div class="blog-row">
+    <a class="blog-link" href="/learning-tones">Chinese Blog</a>
+    <a class="blog-link" href="/why-i-quit">Life Blog</a>
+  </div>
+
+  <div class="connect-row">
+    <a class="connect-link" href="https://www.linkedin.com/in/evandavidyoung/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    <a class="connect-link" href="https://github.com/EvanDavidYoung" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <span class="connect-text">Looking for work!</span>
+  </div>
+</div>
+
+<style>
+  .home-sections {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .sections-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .col-header {
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 1rem;
+  }
+
+  .project {
+    margin-bottom: 1.25rem;
+  }
+
+  .project-title {
+    display: block;
+    font-size: var(--font-size-m);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  a.project-title {
+    text-decoration: underline;
+    text-decoration-color: var(--text-tertiary);
+    transition: text-decoration-color 0.2s ease-out;
+  }
+
+  a.project-title:hover {
+    text-decoration-color: var(--text-primary);
+  }
+
+  .project-desc {
+    font-size: var(--font-size-s);
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-top: 0.2rem;
+    padding: 0;
+  }
+
+  .blog-row {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .blog-link {
+    font-size: var(--font-size-m);
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-decoration-color: var(--text-tertiary);
+    transition: text-decoration-color 0.2s ease-out;
+  }
+
+  .blog-link:hover {
+    text-decoration-color: var(--text-primary);
+  }
+
+  .connect-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .connect-link {
+    font-size: var(--font-size-m);
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-decoration-color: var(--text-tertiary);
+    transition: text-decoration-color 0.2s ease-out;
+  }
+
+  .connect-link:hover {
+    text-decoration-color: var(--text-primary);
+  }
+
+  .connect-text {
+    font-size: var(--font-size-m);
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .sections-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

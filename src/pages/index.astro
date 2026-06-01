@@ -6,8 +6,10 @@ import { themeConfig } from '@/config'
 ---
 
 <IndexLayout title={themeConfig.site.title} description={themeConfig.site.description}>
-  <About />
-  <main>
+  <div data-animate style="--stagger:1">
+    <About />
+  </div>
+  <div data-animate style="--stagger:2">
     <HomeSections />
-  </main>
+  </div>
 </IndexLayout>

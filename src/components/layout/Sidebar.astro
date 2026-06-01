@@ -1,0 +1,61 @@
+---
+const currentPath = Astro.url.pathname
+
+const navItems = [
+  {
+    label: 'About',
+    href: '/',
+    active: currentPath === '/',
+  },
+  {
+    label: 'Projects',
+    href: '/projects',
+    active: currentPath === '/projects',
+  },
+  {
+    label: 'Life Blog',
+    href: '/why-i-quit',
+    active: currentPath === '/why-i-quit' || currentPath === '/one-year-in-taiwan',
+  },
+]
+---
+
+<nav class="sidebar">
+  {
+    navItems.map(({ label, href, active }) => (
+      <a href={href} class:list={['nav-link', { active }]}>
+        {label}
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .sidebar {
+    position: fixed;
+    top: 6rem;
+    left: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .nav-link {
+    font-size: var(--font-size-s);
+    color: var(--text-tertiary);
+    text-decoration: none;
+    transition: color 0.2s ease-out;
+    white-space: nowrap;
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      display: none;
+    }
+  }
+</style>

@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config'
 import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
+import cloudflare from '@astrojs/cloudflare'
 import remarkMath from 'remark-math'
 import remarkDirective from 'remark-directive'
 import rehypeKatex from 'rehype-katex'
@@ -16,6 +17,7 @@ import { imageConfig } from './src/utils/image-config'
 import path from 'path'
 
 export default defineConfig({
+  adapter: cloudflare(),
   site: themeConfig.site.website,
   image: {
     service: {

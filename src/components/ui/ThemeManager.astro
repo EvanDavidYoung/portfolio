@@ -80,8 +80,11 @@
       },
 
       applyTheme(theme) {
-        document.documentElement.classList.remove('light', 'dark')
+        // Add new class before removing old to prevent a no-class gap that
+        // briefly exposes the :root white default during view transitions.
         document.documentElement.classList.add(theme)
+        const otherTheme = theme === 'dark' ? 'light' : 'dark'
+        document.documentElement.classList.remove(otherTheme)
 
         const isSystemTheme = this.isUsingSystemTheme()
 

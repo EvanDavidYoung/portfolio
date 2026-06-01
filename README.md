@@ -1,6 +1,6 @@
 # Portfolio
 
-Personal portfolio hosted on [evanyoung.dev](evanyoung.dev) and blog built with [Astro](https://astro.build) on the [Chiri](https://github.com/the3ash/astro-chiri) theme. Deployed to [Cloudflare Workers](https://workers.cloudflare.com/) via the `@astrojs/cloudflare` adapter.
+Personal portfolio hosted on [evanyoung.dev](https://evanyoung.dev/) and blog built with [Astro](https://astro.build) on the [Chiri](https://github.com/the3ash/astro-chiri) theme. Deployed to [Cloudflare Workers](https://workers.cloudflare.com/) via the `@astrojs/cloudflare` adapter.
 
 ## Commands
 

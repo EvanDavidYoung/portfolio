@@ -4,7 +4,7 @@ compatibility_flags = [ "nodejs_compat" ]
 
 [assets]
 binding = "ASSETS"
-directory = "./dist"
+directory = "./dist/client"
 
 [observability]
 enabled = true

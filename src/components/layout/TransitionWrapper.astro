@@ -35,8 +35,7 @@ const { class: className = '' } = Astro.props
       }
 
       ::view-transition-new(root) {
-        opacity: 0;
-        animation: fade-in 0.4s ease 0.2s forwards;
+        animation: fade-in 0.4s ease forwards;
         will-change: filter, opacity, transform;
       }
     }

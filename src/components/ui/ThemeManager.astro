@@ -1,14 +1,10 @@
 <!--
-  This is a critical style block to prevent flashing on page load in dark mode.
-  It is injected into the <head> of the document before the main stylesheets are loaded.
+  Minimal theme block — light mode only. Prevents flash on load and
+  preserves the correct class across Astro view transitions.
 -->
 <style is:inline>
   :root {
     --bg: #ffffff;
-  }
-
-  html.dark {
-    --bg: #1c1c1c;
   }
 
   html {
@@ -16,11 +12,6 @@
     color-scheme: light;
   }
 
-  html.dark {
-    color-scheme: dark;
-  }
-
-  /* Suppress background-color transition during initial load so slow CSS downloads don't animate a flash */
   html.no-transition,
   html.no-transition * {
     transition: none !important;
@@ -28,106 +19,13 @@
 </style>
 
 <script is:inline>
-  // Global Theme Manager
   ;(function () {
-    // Prevent duplicate initialization
-    if (window.ThemeManager && window.ThemeManager.initialized) {
-      return
-    }
+    if (window.__themeApplied) return
+    window.__themeApplied = true
 
-    const systemThemeQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    document.documentElement.classList.remove('dark')
+    document.documentElement.classList.add('light')
 
-    function getAppliedTheme() {
-      return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    }
-
-    window.ThemeManager = {
-      STORAGE_KEY: 'chiri-theme',
-      initialized: false,
-
-      getSystemTheme() {
-        return systemThemeQuery.matches ? 'dark' : 'light'
-      },
-
-      getStoredTheme() {
-        try {
-          return localStorage.getItem(this.STORAGE_KEY)
-        } catch {
-          return null
-        }
-      },
-
-      setStoredTheme(theme) {
-        try {
-          if (theme === 'system') {
-            // Reserved API: clearing storage makes the current system theme effective again.
-            localStorage.removeItem(this.STORAGE_KEY)
-          } else {
-            localStorage.setItem(this.STORAGE_KEY, theme)
-          }
-        } catch (e) {
-          console.warn('Failed to store theme preference:', e)
-        }
-      },
-
-      getEffectiveTheme() {
-        const stored = this.getStoredTheme()
-        return stored || this.getSystemTheme()
-      },
-
-      isUsingSystemTheme() {
-        return this.getStoredTheme() === null
-      },
-
-      applyTheme(theme) {
-        // Add new class before removing old to prevent a no-class gap that
-        // briefly exposes the :root white default during view transitions.
-        document.documentElement.classList.add(theme)
-        const otherTheme = theme === 'dark' ? 'light' : 'dark'
-        document.documentElement.classList.remove(otherTheme)
-
-        const isSystemTheme = this.isUsingSystemTheme()
-
-        // Dispatch event for other components
-        document.dispatchEvent(
-          new CustomEvent('themechange', {
-            detail: {
-              theme,
-              isUserChoice: !isSystemTheme,
-              isSystemTheme
-            }
-          })
-        )
-      },
-
-      toggle() {
-        const currentTheme = this.getEffectiveTheme()
-        // Simply toggle between light and dark
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
-
-        this.setStoredTheme(newTheme)
-        this.applyTheme(newTheme)
-      },
-
-      init() {
-        if (this.initialized) return
-
-        // Set initial theme (maintain current theme when refreshing page)
-        this.applyTheme(this.getEffectiveTheme())
-
-        systemThemeQuery.addEventListener('change', (e) => {
-          const newSystemTheme = e.matches ? 'dark' : 'light'
-
-          // Current product behavior: system theme changes always become the stored theme.
-          this.setStoredTheme(newSystemTheme)
-          this.applyTheme(newSystemTheme)
-        })
-
-        this.initialized = true
-      }
-    }
-
-    // Suppress transitions on initial load so slow CSS downloads can't animate a flash
     document.documentElement.classList.add('no-transition')
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -135,29 +33,14 @@
       })
     })
 
-    // Initialize theme manager
-    window.ThemeManager.init()
-
-    // Copy theme class to incoming document before swap — prevents flash during navigation
     document.addEventListener('astro:before-swap', (e) => {
-      if (window.ThemeManager) {
-        const theme = window.ThemeManager.getEffectiveTheme()
-        e.newDocument.documentElement.classList.remove('light', 'dark')
-        e.newDocument.documentElement.classList.add(theme)
-      }
+      e.newDocument.documentElement.classList.remove('dark')
+      e.newDocument.documentElement.classList.add('light')
     })
 
-    // Re-initialize after swap in case ThemeManager state needs refresh
     document.addEventListener('astro:after-swap', () => {
-      if (window.ThemeManager) {
-        window.ThemeManager.applyTheme(window.ThemeManager.getEffectiveTheme())
-      }
-    })
-
-    document.addEventListener('astro:page-load', () => {
-      if (window.ThemeManager) {
-        window.ThemeManager.applyTheme(window.ThemeManager.getEffectiveTheme())
-      }
+      document.documentElement.classList.remove('dark')
+      document.documentElement.classList.add('light')
     })
   })()
 </script>

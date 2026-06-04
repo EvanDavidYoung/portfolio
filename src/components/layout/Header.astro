@@ -5,7 +5,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle.astro'
 
 <header>
   <nav>
-    <a href="/">{themeConfig.site.title}</a>
+    <span>{themeConfig.site.title}</span>
     {themeConfig.general.themeToggle && <ThemeToggle />}
   </nav>
 </header>
@@ -18,10 +18,10 @@ import ThemeToggle from '@/components/ui/ThemeToggle.astro'
     justify-content: space-between;
     align-items: center;
   }
-  header a {
+  header span {
+    font-size: 1.1rem;
     font-weight: var(--font-weight-bold);
     color: var(--text-primary);
-    text-decoration: none;
     min-width: 3rem;
     display: inline-block;
   }

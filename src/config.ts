@@ -4,7 +4,7 @@ export const themeConfig: ThemeConfig = {
   // SITE INFO ///////////////////////////////////////////////////////////////////////////////////////////
   site: {
     website: 'https://chiri.the3ash.com/', // Site domain TODO: Replace this with real domain
-    title: 'Evan', // Site title
+    title: 'Evan Young', // Site title
     author: 'Evan Young', // Author name
     description: 'Portfolio website', // Site description
     language: 'en-US' // Default language

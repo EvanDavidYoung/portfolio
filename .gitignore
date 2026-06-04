@@ -27,4 +27,7 @@ pnpm-debug.log*
 # Netlify build output
 .netlify/
 
+# Cloudflare Workers
+.wrangler/
+
 *.tsbuildinfo

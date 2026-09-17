@@ -1,0 +1,149 @@
+---
+import { themeConfig } from '@/config'
+import IndexLayout from '@/layouts/IndexLayout.astro'
+import { tools, toolSections } from '@/data/tools'
+---
+
+<IndexLayout
+  title={`Tools · ${themeConfig.site.title}`}
+  description="Small tools I've built and kept around."
+>
+  <div class="tools">
+    <p class="intro" data-animate style="--stagger:1">
+      Things I've built and kept around, so I only have to work out each trick once.
+    </p>
+
+    {
+      toolSections.map((section, i) => (
+        <section class="col" data-animate style={`--stagger:${i + 2}`}>
+          <h3 class="col-header">{section.heading}</h3>
+          <p class="col-blurb">{section.blurb}</p>
+          {tools
+            .filter((tool) => tool.category === section.category)
+            .map((tool) => (
+              <div class="project">
+                <div class="project-head">
+                  {tool.href ? (
+                    <a
+                      class="project-title"
+                      href={tool.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {tool.name}
+                    </a>
+                  ) : (
+                    <span class="project-title">{tool.name}</span>
+                  )}
+                  {tool.note && <span class="project-note">{tool.note}</span>}
+                </div>
+                <p class="project-desc">{tool.description}</p>
+                {tool.source && (
+                  <a
+                    class:list={['project-source', { 'is-file': tool.sourceLabel }]}
+                    href={tool.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {tool.sourceLabel ?? 'Source'}
+                  </a>
+                )}
+              </div>
+            ))}
+        </section>
+      ))
+    }
+  </div>
+</IndexLayout>
+
+<style>
+  .tools {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .intro {
+    font-size: var(--font-size-m);
+    color: var(--text-secondary);
+    margin: 0 0 2rem;
+  }
+
+  .col {
+    margin-bottom: 2.5rem;
+  }
+
+  .col-header {
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin: 0 0 0.35rem;
+  }
+
+  .col-blurb {
+    font-size: var(--font-size-s);
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0 0 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .project {
+    margin-bottom: 1.5rem;
+  }
+
+  .project-head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .project-title {
+    font-size: var(--font-size-m);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  a.project-title {
+    text-decoration: underline;
+    text-decoration-color: var(--text-tertiary);
+    transition: text-decoration-color 0.2s ease-out;
+  }
+
+  a.project-title:hover {
+    text-decoration-color: var(--text-primary);
+  }
+
+  .project-note {
+    font-size: var(--font-size-s);
+    color: var(--text-tertiary);
+  }
+
+  .project-desc {
+    font-size: var(--font-size-s);
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-top: 0.2rem;
+    padding: 0;
+  }
+
+  .project-source {
+    display: inline-block;
+    margin-top: 0.35rem;
+    font-size: var(--font-size-s);
+    color: var(--text-secondary);
+    text-decoration: underline;
+    text-decoration-color: var(--text-tertiary);
+    transition: color 0.2s ease-out;
+  }
+
+  .project-source:hover {
+    color: var(--text-primary);
+  }
+
+  .project-source.is-file {
+    font-family: var(--mono);
+  }
+</style>

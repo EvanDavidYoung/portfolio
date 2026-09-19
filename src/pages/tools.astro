@@ -4,10 +4,7 @@ import IndexLayout from '@/layouts/IndexLayout.astro'
 import { tools, toolSections } from '@/data/tools'
 ---
 
-<IndexLayout
-  title={`Tools · ${themeConfig.site.title}`}
-  description="Small tools I've built and kept around."
->
+<IndexLayout title={`Tools · ${themeConfig.site.title}`} description="Small tools I've built and kept around.">
   <div class="tools">
     <p class="intro" data-animate style="--stagger:1">
       Things I've built and kept around, so I only have to work out each trick once.
@@ -24,12 +21,7 @@ import { tools, toolSections } from '@/data/tools'
               <div class="project">
                 <div class="project-head">
                   {tool.href ? (
-                    <a
-                      class="project-title"
-                      href={tool.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
+                    <a class="project-title" href={tool.href} target="_blank" rel="noopener noreferrer">
                       {tool.name}
                     </a>
                   ) : (

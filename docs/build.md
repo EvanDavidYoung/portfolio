@@ -43,7 +43,7 @@ Deploy is `wrangler deploy -c dist/server/wrangler.json`.
 Setting `themeConfig.post.linkCard = false` in `src/config.ts` does more than
 turn off link cards. The prebuild script **comments out the Cloudflare adapter
 in `astro.config.ts` and renames `src/pages/api/proxy.ts` to `.bak`**, which
-takes down *every* SSR route, not just the link-card proxy.
+takes down _every_ SSR route, not just the link-card proxy.
 
 It also rewrites `astro.config.ts` in place, so flipping that flag produces an
 unrelated-looking diff in a file you didn't edit.

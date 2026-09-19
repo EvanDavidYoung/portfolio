@@ -58,8 +58,7 @@ export const tools: Tool[] = [
   {
     name: 'Diarized transcription',
     category: 'modal',
-    source:
-      'https://github.com/EvanDavidYoung/podcastdownloader/blob/main/scripts/modal/transcribe_modal.py',
+    source: 'https://github.com/EvanDavidYoung/podcastdownloader/blob/main/scripts/modal/transcribe_modal.py',
     sourceLabel: 'transcribe_modal.py',
     note: 'Deployed but authenticated — no public endpoint',
     description:

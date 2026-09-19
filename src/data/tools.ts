@@ -47,6 +47,14 @@ export const tools: Tool[] = [
       'Load a climbing video plus pose-detection output and scrub a colour-coded timeline of the detected segments. Built to find where the model was wrong, which is most of what training one actually consists of. Ships with a sample clip so it works without supplying your own files.'
   },
   {
+    name: 'Room planner',
+    category: 'html',
+    href: 'https://tools.evanyoung.dev/room-planner/',
+    source: 'https://github.com/EvanDavidYoung/tools',
+    description:
+      'Drag furniture around a to-scale floor plan, Sims-style, to work out a bedroom layout before moving anything heavy. Flags pieces that overlap, block a door swing or sit in front of the radiator, and shows the clearance to the nearest wall or piece.'
+  },
+  {
     name: 'Guitar tab ripper',
     category: 'html',
     href: 'https://evanyoung.dev/ugrip/',

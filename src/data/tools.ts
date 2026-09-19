@@ -49,7 +49,7 @@ export const tools: Tool[] = [
   {
     name: 'Guitar tab ripper',
     category: 'html',
-    href: 'https://ugrip.pages.dev/',
+    href: 'https://evanyoung.dev/ugrip/',
     source: 'https://github.com/EvanDavidYoung/ugrip',
     note: 'Forked from hedwiggggg/ugrip (MIT), self-hosted',
     description:

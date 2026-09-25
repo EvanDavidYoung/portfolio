@@ -1,10 +1,11 @@
 # How this site builds and deploys
 
-Two separate sites, two separate repos, deliberately not coupled.
+Two separate sites, two separate repos, both Cloudflare Workers deployed by
+Cloudflare Workers Builds on push to `main`.
 
 ```mermaid
 flowchart TD
-  subgraph portfolio["portfolio repo → evanyoung.dev"]
+  subgraph portfolio["portfolio repo → evanyoung.dev (Worker: portfolio)"]
     A["pnpm build"] --> B["prebuild<br/>scripts/toggle-proxy.ts"]
     B -->|reads themeConfig.post.linkCard| C{linkCard true?}
     C -->|yes| D["keep Cloudflare adapter<br/>+ src/pages/api/proxy.ts"]
@@ -15,15 +16,35 @@ flowchart TD
     K["src/content/posts/*.md"] --> G
     J["src/data/tools.ts"] --> G
     G --> H["dist/client static assets<br/>dist/server worker"]
-    H --> I["wrangler deploy"]
+    H --> I["pnpm deploy<br/>(wrangler deploy)"]
   end
 
-  subgraph toolsrepo["tools repo → tools.evanyoung.dev"]
-    L["static HTML, no build step"] --> M["wrangler pages deploy"]
+  subgraph toolsrepo["tools repo → tools.evanyoung.dev (Worker: tools)"]
+    L["static HTML, no build step"] --> M["wrangler deploy"]
+    N["/ → 302 evanyoung.dev/tools/"]
   end
 
   J -.->|"hand-maintained links"| L
 ```
+
+## Deploys
+
+Both Workers are connected to their GitHub repos through Workers Builds
+(Cloudflare dashboard → Workers → the Worker → Settings → Build).
+
+| Worker    | Branch        | Command                                                     | Effect                      |
+| --------- | ------------- | ----------------------------------------------------------- | --------------------------- |
+| portfolio | `main`        | `pnpm deploy`                                               | live on evanyoung.dev       |
+| portfolio | anything else | `npx wrangler versions upload -c dist/server/wrangler.json` | preview version, not live   |
+| tools     | `main`        | `npx wrangler deploy`                                       | live on tools.evanyoung.dev |
+
+So what's live is what's on `main`. Don't run `pnpm deploy` from a local
+checkout: it ships whatever that checkout has, and a later push to `main`
+silently overwrites it. That is how an unpushed branch once ended up live and
+then was one push away from disappearing.
+
+GitHub Actions (`.github/workflows/ci.yml`) only validates and builds; it does
+not deploy.
 
 ## The portfolio build
 
@@ -51,19 +72,15 @@ unrelated-looking diff in a file you didn't edit.
 `/tools` is fully static and unaffected. But anything server-rendered added
 later will silently vanish if that flag is ever turned off.
 
-### `netlify.toml` is vestigial
-
-It publishes `dist`, while `astro.config.ts` uses `@astrojs/cloudflare` and the
-`deploy` script targets `dist/server/wrangler.json`. Cloudflare is the real
-target; the Netlify config is leftover and should be deleted.
-
 ## The tools site
 
-No build step at all — `wrangler pages deploy .` copies the files up. Each tool
-is a single HTML file with inline CSS and JS.
+No build step at all. `wrangler deploy` uploads the repo root as static assets
+for the `tools` Worker. Each tool is a single HTML file with inline CSS and JS.
 
-The `/tools` page on the portfolio is a **hand-maintained** index in
-`src/data/tools.ts`. It links to `tools.evanyoung.dev` but does not fetch from
-it, so the portfolio build never depends on the tools site being reachable.
-Adding a tool means editing both repos. That is the intended tradeoff: two
-edits, versus a build that can fail because another site is down.
+The `/tools` page here is **the only index** of those tools. The root of
+tools.evanyoung.dev redirects to it, so there is no second list to keep in sync.
+It is hand-maintained in `src/data/tools.ts`: it links to `tools.evanyoung.dev`
+but does not fetch from it, so the portfolio build never depends on the tools
+site being reachable. Adding a tool means a directory in the tools repo plus an
+entry here — two edits, versus a build that can fail because another site is
+down.

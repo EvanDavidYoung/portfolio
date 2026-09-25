@@ -2,21 +2,25 @@
 
 ## Project Overview
 
-Personal portfolio/blog built on the **Chiri** Astro theme. Static site with MDX support, deployed via Netlify.
+Personal portfolio/blog built on the **Chiri** Astro theme. Static site with MDX support, deployed as a Cloudflare Worker named `portfolio`.
 
 - **Framework**: Astro 6 (TypeScript)
 - **Package manager**: `pnpm` (workspace setup via `pnpm-workspace.yaml`)
-- **Deployment**: Netlify (`netlify.toml`)
+- **Deployment**: Cloudflare Workers Builds, connected to this GitHub repo. A push to
+  `main` builds and deploys to evanyoung.dev. Any other pushed branch only uploads a
+  preview version (`wrangler versions upload`) and does not go live. Don't deploy by
+  hand from a local checkout — see `docs/build.md`.
 
 ## Key Files
 
-| File | Purpose |
-|---|---|
-| `src/config.ts` | All site/theme configuration (title, author, feature flags) |
-| `src/content/about/about.md` | About blurb shown at top of index page |
-| `src/content/posts/` | Blog posts (`.md` or `.mdx`) |
-| `src/content.config.ts` | Astro content collection schemas |
-| `src/data/link-card-metadata.json` | Cached link card metadata (auto-updated) |
+| File                               | Purpose                                                                |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| `src/config.ts`                    | All site/theme configuration (title, author, feature flags)            |
+| `src/content/about/about.md`       | About blurb shown at top of index page                                 |
+| `src/content/posts/`               | Blog posts (`.md` or `.mdx`)                                           |
+| `src/content.config.ts`            | Astro content collection schemas                                       |
+| `src/data/link-card-metadata.json` | Cached link card metadata (auto-updated)                               |
+| `src/data/tools.ts`                | The `/tools` page — the only index of the tools on tools.evanyoung.dev |
 
 ## Common Commands
 
@@ -34,21 +38,25 @@ pnpm format                 # Prettier
 ## Content Authoring
 
 ### New Posts
+
 Posts live in `src/content/posts/`. Required frontmatter:
+
 ```yaml
 ---
 title: Post Title
 pubDate: 'YYYY-MM-DD'
-image: optional-image.webp   # optional
+image: optional-image.webp # optional
 ---
 ```
 
 Drafts: prefix filename with `_` (e.g., `_draft-example.md`). The `pnpm new _title` script handles this.
 
 ### About Page
+
 Edit `src/content/about/about.md` — content appears at the top of the index.
 
 ### MDX
+
 `.mdx` files are supported. Example components are in `src/components/examples/`.
 
 ## Architecture

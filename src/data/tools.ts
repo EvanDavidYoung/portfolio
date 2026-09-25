@@ -19,7 +19,7 @@ export const toolSections: { category: ToolCategory; heading: string; blurb: str
     category: 'html',
     heading: 'HTML tools',
     blurb:
-      'Single files with inline CSS and JS. No build step, no server, no network calls — they read files you pick locally and never upload anything.'
+      'Single files with inline CSS and JS. No build step and no server. They read files you pick locally and never upload anything; the one that calls an API asks for your own key.'
   },
   {
     category: 'modal',
@@ -53,6 +53,15 @@ export const tools: Tool[] = [
     source: 'https://github.com/EvanDavidYoung/tools',
     description:
       'Drag furniture around a to-scale floor plan, Sims-style, to work out a bedroom layout before moving anything heavy. Flags pieces that overlap, block a door swing or sit in front of the radiator, and shows the clearance to the nearest wall or piece.'
+  },
+  {
+    name: 'Chinese shadowing',
+    category: 'html',
+    href: 'https://tools.evanyoung.dev/shadowing/',
+    source: 'https://github.com/EvanDavidYoung/tools',
+    note: 'Your own text needs your own OpenRouter key',
+    description:
+      'Read along with spoken Mandarin word by word, in simplified or traditional, then loop a sentence or have it pause after each one so you can repeat it out loud. Four articles are bundled; paste your own text and it generates the audio a sentence at a time, so the sentence boundaries the drill depends on are exact.'
   },
   {
     name: 'Guitar tab ripper',

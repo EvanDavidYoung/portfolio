@@ -22,12 +22,8 @@ const linkCardEnabled: boolean = match[1] === 'true'
 function toggleAstroAdapter(comment: boolean) {
   const lines = fs.readFileSync(astroConfigPath, 'utf-8').split('\n')
 
-  const importIndex = lines.findIndex(
-    (line) => line.trim().includes('import') && line.includes('cloudflare')
-  )
-  const adapterIndex = lines.findIndex(
-    (line) => line.trim().includes('adapter:') && line.includes('cloudflare')
-  )
+  const importIndex = lines.findIndex((line) => line.trim().includes('import') && line.includes('cloudflare'))
+  const adapterIndex = lines.findIndex((line) => line.trim().includes('adapter:') && line.includes('cloudflare'))
 
   if (importIndex === -1 || adapterIndex === -1) {
     console.error('Could not find cloudflare adapter import or configuration')

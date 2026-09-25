@@ -70,7 +70,6 @@ html.light {
   --astro-code-token-link: rgba(0, 0, 0, 0.55);
 }
 
-
 @keyframes animate-in {
   from {
     opacity: 0;

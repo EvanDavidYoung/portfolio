@@ -36,7 +36,7 @@ export const tools: Tool[] = [
     href: 'https://tools.evanyoung.dev/transcript-player/',
     source: 'https://github.com/EvanDavidYoung/tools',
     description:
-      'Load an audio file and its transcript JSON, then play them in sync with word-level highlighting. Written for reviewing machine transcripts, so it handles the CJK/English token-spacing problem that makes most players render bilingual text wrong.'
+      'Load an audio file and its transcript JSON, then play them in sync with word-level highlighting. Written for reviewing machine transcripts, so it handles the CJK/English token-spacing problem that makes most players render bilingual text wrong. Colours each speaker when the transcript is diarized, and ships with a minute of a three-host Mandarin podcast to show it.'
   },
   {
     name: 'Climbing detection viewer',

@@ -14,13 +14,13 @@ import { projects } from '@/data/projects'
           <div class="card-media">
             {project.media?.type === 'video' ? (
               <video
-                src={project.media.src}
+                data-src={project.media.src}
                 poster={project.media.poster}
                 aria-label={project.media.alt}
                 muted
                 loop
                 playsinline
-                preload="metadata"
+                preload="none"
                 data-autoplay
               />
             ) : project.media?.type === 'image' ? (
@@ -52,10 +52,22 @@ import { projects } from '@/data/projects'
 
 <script>
   // Autoplay clips only when the user hasn't asked for reduced motion; otherwise the poster stays.
+  // Each clip is fetched whole and played from a blob URL: Workers static assets answer Range
+  // requests with a full 200, which makes Firefox's streaming player fail with "could not be
+  // decoded". The poster covers the download, and stays up if it fails.
   function playClips() {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    document.querySelectorAll<HTMLVideoElement>('video[data-autoplay]').forEach((video) => {
-      video.play().catch(() => {})
+    document.querySelectorAll<HTMLVideoElement>('video[data-autoplay][data-src]').forEach(async (video) => {
+      const src = video.dataset.src!
+      delete video.dataset.src
+      try {
+        const res = await fetch(src)
+        if (!res.ok) return
+        video.src = URL.createObjectURL(await res.blob())
+        await video.play()
+      } catch {
+        // Keep the poster.
+      }
     })
   }
   document.addEventListener('astro:page-load', playClips)

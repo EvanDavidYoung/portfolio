@@ -29,11 +29,7 @@ const shouldRenderLinkCard = themeConfig.post.linkCard && contentFeatures.hasLin
 ---
 
 <BaseLayout title={`${title} · ${themeConfig.site.title}`} description={themeConfig.site.description} type="post">
-  <BaseHead
-    title={`${title} · ${themeConfig.site.title}`}
-    description={themeConfig.site.description}
-    slot="head"
-  />
+  <BaseHead title={`${title} · ${themeConfig.site.title}`} description={themeConfig.site.description} slot="head" />
   <div class="post-container">
     <main>
       <div class="prose">

@@ -4,14 +4,14 @@ Personal portfolio hosted on [evanyoung.dev](https://evanyoung.dev/) and blog bu
 
 ## Commands
 
-| Command | Description |
-|---|---|
-| `pnpm dev` | Start dev server at `localhost:4321` |
-| `pnpm build` | Build to `dist/` |
-| `pnpm deploy` | Deploy to Cloudflare Workers (`wrangler deploy`) |
-| `pnpm new <title>` | Create a new post (`_title` for drafts) |
-| `pnpm update-link-metadata` | Refresh link card metadata |
-| `pnpm typecheck` | Run TypeScript + Astro type checks |
+| Command                     | Description                                      |
+| --------------------------- | ------------------------------------------------ |
+| `pnpm dev`                  | Start dev server at `localhost:4321`             |
+| `pnpm build`                | Build to `dist/`                                 |
+| `pnpm deploy`               | Deploy to Cloudflare Workers (`wrangler deploy`) |
+| `pnpm new <title>`          | Create a new post (`_title` for drafts)          |
+| `pnpm update-link-metadata` | Refresh link card metadata                       |
+| `pnpm typecheck`            | Run TypeScript + Astro type checks               |
 
 ## Deploy
 

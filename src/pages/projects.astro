@@ -43,6 +43,15 @@ import { projects } from '@/data/projects'
             </div>
             {project.stack && <p class="card-stack">{project.stack}</p>}
             <p class="card-desc">{project.description}</p>
+            {project.links && (
+              <p class="card-links">
+                {project.links.map((link) => (
+                  <a href={link.href} target="_blank" rel="noopener noreferrer">
+                    {link.label} ↗
+                  </a>
+                ))}
+              </p>
+            )}
           </div>
         </article>
       ))
@@ -152,6 +161,26 @@ import { projects } from '@/data/projects'
     color: var(--text-tertiary);
     margin: 0.15rem 0 0;
     padding: 0;
+  }
+
+  .card-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    font-size: var(--font-size-s);
+    margin: 0.6rem 0 0;
+    padding: 0;
+  }
+
+  .card-links a {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-decoration-color: var(--text-tertiary);
+    transition: text-decoration-color 0.2s ease-out;
+  }
+
+  .card-links a:hover {
+    text-decoration-color: var(--text-primary);
   }
 
   .card-desc {

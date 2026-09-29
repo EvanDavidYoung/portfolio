@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clip Studio demo · Clip Studio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%230d1117'/%3E%3Crect x='3' y='6' width='7' height='4' rx='1' fill='%233fb950'/%3E%3Crect x='11' y='6' width='2' height='4' rx='1' fill='%23a371f7'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0d1117; --panel:#151b23; --panel2:#1c232d; --line:#2a323d;
+  --fg:#e6edf3; --dim:#8b98a8; --faint:#5c6774;
+  --accent:#4da3ff; --accent-dim:#1f4e7a;
+  --climb:#3fb950; --climb-dim:#1b4d27;
+  --suggest:#a371f7; --warn:#d29922; --bad:#f85149;
+  --radius:8px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:13px/1.45 ui-sans-serif,-apple-system,"SF Pro Text",Segoe UI,Roboto,sans-serif;
+  overflow:hidden;
+}
+button,input,select{font:inherit;color:inherit}
+button{
+  background:var(--panel2); border:1px solid var(--line); color:var(--fg);
+  padding:6px 11px; border-radius:6px; cursor:pointer; white-space:nowrap;
+}
+button:hover:not(:disabled){background:#28313d; border-color:#3d4855}
+button:disabled{opacity:.4; cursor:default}
+button.primary{background:var(--accent-dim); border-color:#2f6ea8}
+button.primary:hover:not(:disabled){background:#265f92}
+button.go{background:#1e5c2c; border-color:#2d7a3f}
+button.go:hover:not(:disabled){background:#276f36}
+button.tiny{padding:2px 6px; font-size:11px; border-radius:4px}
+input[type=number],input[type=text],select{
+  background:#0b0f14; border:1px solid var(--line); border-radius:5px; padding:4px 6px;
+}
+input[type=number]{width:74px; font-variant-numeric:tabular-nums}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums}
+
+/* ---------- shell ---------- */
+#app{display:grid; grid-template-rows:auto auto 1fr; height:100%}
+#demo{padding:7px 16px; font-size:12px; color:var(--dim); background:#0b1a2b; border-bottom:1px solid var(--line)}
+#demo a{color:var(--fg)}
+@media (max-width:760px){main{grid-template-columns:1fr; overflow-y:auto} #side{max-height:40vh}}
+header{
+  display:flex; align-items:center; gap:14px; padding:9px 16px;
+  border-bottom:1px solid var(--line); background:var(--panel);
+}
+header h1{font-size:14px; margin:0; letter-spacing:.3px}
+header h1 span{color:var(--faint); font-weight:400; margin-left:8px}
+#status{margin-left:auto; color:var(--dim); font-size:12px; display:flex; align-items:center; gap:8px}
+#status.err{color:var(--bad)}
+#tally{color:var(--faint); font-size:12px}
+main{display:grid; grid-template-columns:270px 1fr; min-height:0}
+#side{border-right:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column; min-height:0}
+#work{min-height:0; overflow-y:auto; padding:14px 16px 40px}
+
+/* ---------- sidebar ---------- */
+#drop{
+  margin:12px; padding:16px 10px; text-align:center; border:1.5px dashed var(--line);
+  border-radius:var(--radius); color:var(--dim); cursor:pointer; font-size:12px;
+}
+#drop:hover,#drop.over{border-color:var(--accent); color:var(--accent); background:#12202e}
+#vlist{overflow-y:auto; flex:1; padding:0 8px 12px}
+.vrow{
+  padding:8px 9px; border-radius:6px; cursor:pointer; margin-bottom:2px;
+  border:1px solid transparent;
+}
+.vrow:hover{background:var(--panel2)}
+.vrow.on{background:#16283a; border-color:var(--accent-dim)}
+.vrow .nm{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.vrow .meta{color:var(--faint); font-size:11px; display:flex; gap:7px; margin-top:3px; align-items:center}
+.chip{font-size:10px; padding:1px 5px; border-radius:4px; background:#232c38; color:var(--dim)}
+.chip.ok{background:var(--climb-dim); color:#7ee787}
+.chip.sug{background:#2e2246; color:#c297ff}
+.chip.cut{background:#3a2d12; color:#e3b341}
+.chip.run{background:#16283a; color:var(--accent)}
+.vrow .top{display:flex; align-items:center; gap:7px}
+.vrow .top .nm{flex:1; min-width:0}
+.vrow input[type=checkbox]{margin:0; accent-color:var(--accent); cursor:pointer}
+#bulk{display:flex; align-items:center; gap:6px; padding:0 14px 8px; font-size:11.5px; color:var(--dim); flex-wrap:wrap}
+#bulk .spacer{flex:1}
+
+/* ---------- tabs + queue ---------- */
+#tabs{display:flex; gap:2px; margin-left:8px}
+#tabs button{background:none; border:1px solid transparent; color:var(--dim); padding:4px 10px}
+#tabs button.on{background:var(--panel2); border-color:var(--line); color:var(--fg)}
+#tabs .n{margin-left:5px; background:var(--accent-dim); color:var(--fg); border-radius:8px;
+  padding:0 6px; font-size:10.5px}
+#queue{min-height:0; overflow-y:auto; padding:14px 16px 40px}
+#queue h3{font-size:12px; color:var(--dim); text-transform:uppercase; letter-spacing:.6px; margin:18px 0 8px}
+.job{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:9px 11px; margin-bottom:8px}
+.job .hd{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.job .kind{font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; padding:1px 6px;
+  border-radius:4px; background:#232c38; color:var(--dim)}
+.job .kind.modal{background:#2e2246; color:#c297ff}
+.job .kind.cut{background:#3a2d12; color:#e3b341}
+.job .kind.detect{background:#16283a; color:var(--accent)}
+.job .who{font-weight:600}
+.job .who a{color:var(--fg); cursor:pointer; text-decoration:underline dotted var(--faint)}
+.job .when{color:var(--faint); font-size:11.5px}
+.job .msg{color:var(--dim); font-size:11.5px; margin-top:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.job.error .msg{color:var(--bad); white-space:normal}
+.job details{margin-top:6px}
+.job summary{color:var(--faint); font-size:11px; cursor:pointer}
+.job pre{margin:6px 0 0; max-height:220px; overflow:auto; font-size:10.5px; color:var(--dim);
+  background:#0b0f14; border-radius:5px; padding:6px 8px; white-space:pre-wrap}
+.stems{display:flex; flex-wrap:wrap; gap:4px; margin-top:7px}
+.stems span{font-size:10.5px; padding:1px 5px; border-radius:4px; cursor:pointer;
+  background:#1a2029; color:var(--faint); border:1px solid transparent}
+.stems .ready{color:var(--dim); border-color:var(--line)}
+.stems .done{background:var(--climb-dim); color:#7ee787}
+.stems .failed{background:#3d1a1a; color:var(--bad)}
+.legend{display:flex; gap:10px; font-size:10.5px; color:var(--faint); margin-top:6px}
+.vrow .rm{visibility:hidden; color:var(--faint); padding:0 4px; border-radius:4px; line-height:1}
+.vrow:hover .rm{visibility:visible}
+.vrow .rm:hover{color:var(--bad); background:#3d1a1a}
+#modalRun{margin:0 14px 8px; font-size:11px; color:var(--dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+#modalRun.err{color:var(--bad); white-space:normal}
+
+/* ---------- player + timeline ---------- */
+#title{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap}
+#title h2{margin:0; font-size:15px}
+#title .sub{color:var(--faint); font-size:12px}
+.spacer{margin-left:auto}
+#stage{display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:14px; align-items:start}
+video#player{width:100%; background:#000; border-radius:var(--radius); display:block; max-height:52vh}
+#transport{display:flex; align-items:center; gap:8px; margin:9px 0 4px; flex-wrap:wrap}
+#clock{font-size:12px; color:var(--dim)}
+#clock b{color:var(--fg); font-weight:600}
+
+#tl{position:relative; height:124px; margin-top:6px; user-select:none; touch-action:none}
+#tlc{position:absolute; inset:0; width:100%; height:100%; border-radius:6px; cursor:crosshair}
+#segLayer{position:absolute; left:0; right:0; top:58px; height:40px}
+.seg{
+  position:absolute; top:0; height:40px; border-radius:4px;
+  background:rgba(63,185,80,.30); border:1px solid #3fb950;
+  cursor:grab; overflow:hidden;
+}
+.seg.on{background:rgba(63,185,80,.48); border-color:#7ee787; box-shadow:0 0 0 1px #7ee787}
+.seg .lab{
+  position:absolute; left:5px; top:2px; font-size:10px; color:#d7ffd9;
+  pointer-events:none; text-shadow:0 1px 2px #000;
+}
+.seg .h{position:absolute; top:0; width:8px; height:100%; cursor:ew-resize}
+.seg .h.l{left:-1px; border-left:2px solid #7ee787}
+.seg .h.r{right:-1px; border-right:2px solid #7ee787}
+#head{position:absolute; top:0; width:1px; height:100%; background:#fff; pointer-events:none; box-shadow:0 0 4px #fff}
+#head::after{content:""; position:absolute; top:0; left:-4px; border:4px solid transparent; border-top-color:#fff}
+#hint{color:var(--faint); font-size:11px; margin-top:6px}
+
+/* ---------- right rail ---------- */
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:12px}
+.card h3{
+  margin:0; padding:8px 11px; font-size:12px; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:8px; color:var(--dim); font-weight:600;
+}
+.card h3 .spacer{margin-left:auto}
+.card .body{padding:9px 11px}
+.card .body.tight{padding:4px}
+.srow{
+  display:flex; align-items:center; gap:6px; padding:5px 7px; border-radius:5px; cursor:pointer;
+}
+.srow:hover{background:var(--panel2)}
+.srow.on{background:#16281c; outline:1px solid var(--climb-dim)}
+.srow .n{color:var(--faint); width:16px; font-size:11px}
+.srow .t{font-size:11.5px}
+.srow .d{color:var(--dim); font-size:11px; margin-left:auto}
+.srow .x{color:var(--faint); cursor:pointer; padding:0 3px}
+.srow .x:hover{color:var(--bad)}
+.crow{display:flex; align-items:center; gap:7px; padding:5px 7px; border-radius:5px}
+.crow:hover{background:var(--panel2)}
+.crow .nm{font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.crow .d{color:var(--dim); font-size:11px; margin-left:auto}
+.empty{color:var(--faint); padding:10px 11px; font-size:12px}
+.kv{display:flex; justify-content:space-between; font-size:11.5px; padding:2px 0; color:var(--dim)}
+.kv b{color:var(--fg); font-weight:500}
+.bar{height:4px; background:#0b0f14; border-radius:3px; overflow:hidden; margin-top:6px}
+.bar i{display:block; height:100%; background:var(--accent); transition:width .2s}
+.lg{font-size:10.5px; color:var(--faint); margin-top:5px; max-height:44px; overflow:hidden;
+    font-family:ui-monospace,Menlo,monospace; white-space:pre-wrap}
+.row{display:flex; align-items:center; gap:7px; flex-wrap:wrap}
+label.chk{display:flex; align-items:center; gap:5px; color:var(--dim); font-size:11.5px; cursor:pointer}
+#blank{color:var(--faint); text-align:center; padding:70px 20px}
+kbd{background:#222b36; border:1px solid var(--line); border-bottom-width:2px; border-radius:4px;
+    padding:0 4px; font-size:10.5px; font-family:inherit; color:var(--dim)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="demo"><b>Demo.</b> Real footage and real detector output, with the server stubbed out in your browser: suggesting, saving and cutting are simulated, and nothing is uploaded. <a href="/projects/">&larr; Projects</a></div>
+  <header>
+    <h1>Clip Studio <span>suggest &rarr; correct &rarr; cut</span></h1>
+    <nav id="tabs">
+      <button data-tab="work" class="on">Editor</button>
+      <button data-tab="queue">Queue<span class="n" id="qn" hidden></span></button>
+    </nav>
+    <div id="tally"></div>
+    <div id="status"></div>
+  </header>
+  <main>
+    <aside id="side">
+      <div id="drop">Drop video files here<br><span style="color:var(--faint)">or click to choose</span></div>
+      <input type="file" id="file" accept="video/*" multiple hidden>
+      <div id="bulk">
+        <input type="checkbox" id="pickAll" title="select all / none">
+        <span id="pickN">select</span>
+        <button class="tiny" id="pickNew" title="select every video with no suggestion yet">unsuggested</button>
+        <span class="spacer"></span>
+        <button class="tiny" id="bulkRemove" disabled
+                title="take the selected videos out of the studio (recoverable)">Remove</button>
+        <button class="tiny go" id="bulkCut" disabled
+                title="cut each selected video from its labels, or its suggestion if it has no labels">Cut clips</button>
+        <button class="tiny primary" id="bulkDetect" disabled
+                title="run detection on Modal, all selected videos in parallel">Suggest on Modal</button>
+      </div>
+      <div id="modalRun" hidden></div>
+      <div id="vlist"></div>
+    </aside>
+    <section id="work">
+      <div id="blank">Pick a video on the left, or drop new footage in.</div>
+      <div id="editor" hidden>
+        <div id="title">
+          <h2 id="vname"></h2>
+          <span class="sub" id="vmeta"></span>
+          <span class="spacer"></span>
+          <select id="scorer" title="scorer">
+            <option value="rule">rule (tuned)</option>
+            <option value="legacy">legacy</option>
+          </select>
+          <button id="detect" class="primary">Suggest segments</button>
+        </div>
+        <div id="stage">
+          <div>
+            <video id="player" preload="auto" playsinline></video>
+            <div id="transport">
+              <button id="play" style="width:64px">Play</button>
+              <button class="tiny" data-nudge="-1">&#171; 1s</button>
+              <button class="tiny" data-nudge="-0.1">&#8249; .1</button>
+              <button class="tiny" data-nudge="0.1">.1 &#8250;</button>
+              <button class="tiny" data-nudge="1">1s &#187;</button>
+              <span id="clock" class="mono"></span>
+              <span class="spacer"></span>
+              <select id="rate" title="playback rate">
+                <option>0.25</option><option>0.5</option><option selected>1</option>
+                <option>2</option><option>4</option>
+              </select>
+              <button id="setIn" title="I">Set in</button>
+              <button id="setOut" title="O">Set out</button>
+              <button id="addSeg" title="N">+ Segment</button>
+            </div>
+            <div id="tl">
+              <canvas id="tlc"></canvas>
+              <div id="segLayer"></div>
+              <div id="head"></div>
+            </div>
+            <div id="hint">
+              <kbd>space</kbd> play &middot; <kbd>&larr;/&rarr;</kbd> nudge (<kbd>shift</kbd> 1s)
+              &middot; <kbd>i</kbd>/<kbd>o</kbd> in/out &middot; <kbd>n</kbd> new &middot;
+              <kbd>enter</kbd> preview &middot; <kbd>del</kbd> remove &middot;
+              <kbd>a</kbd> accept suggestions &middot; <kbd>ctrl+s</kbd> save
+              &middot; shift-drag the track to draw a segment
+            </div>
+          </div>
+          <div>
+            <div class="card" id="jobCard" hidden>
+              <h3 id="jobTitle">Working</h3>
+              <div class="body">
+                <div class="bar"><i id="jobBar" style="width:0%"></i></div>
+                <div class="lg" id="jobLog"></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Segments <span class="spacer"></span><span id="segTally" class="mono"></span></h3>
+              <div class="body tight" id="segList"></div>
+              <div class="body" style="border-top:1px solid var(--line)">
+                <div class="row">
+                  <button id="accept">Accept suggestions</button>
+                  <button id="clearAll">Clear</button>
+                </div>
+                <div class="row" style="margin-top:8px">
+                  <button id="save" class="primary" style="flex:1">Save labels</button>
+                </div>
+                <div class="kv" style="margin-top:7px"><span id="labState">&nbsp;</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Cut clips</h3>
+              <div class="body">
+                <div class="row">
+                  <select id="mode" style="flex:1">
+                    <option value="reencode">Accurate (re-encode)</option>
+                    <option value="copy">Fast (stream copy)</option>
+                  </select>
+                </div>
+                <label class="chk" style="margin-top:7px">
+                  <input type="checkbox" id="replace" checked> replace this video's existing clips
+                </label>
+                <button id="cut" class="go" style="width:100%;margin-top:8px">Cut segments to clips</button>
+                <div class="kv" style="margin-top:7px"><span>from the original, full resolution</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Detector <span class="spacer"></span><span id="predWhen" class="mono" style="font-size:10.5px"></span></h3>
+              <div class="body" id="predInfo"><div class="kv">not run yet</div></div>
+            </div>
+            <div class="card">
+              <h3>Clips <span class="spacer"></span><span id="clipTally" class="mono"></span></h3>
+              <div class="body tight" id="clipList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="queue" hidden></section>
+  </main>
+</div>
+
+<script>
+// Clip Studio demo: stands in for studio/server.py so the page runs as static files.
+// Every /api/ call is answered here from bundled detector output; jobs are timers.
+// Nothing is uploaded and nothing reaches Modal.
+(() => {
+  const DATA = {"order":["IMG_2235","GH010557","IMG_3684","IMG_2767_1"],"videos":{"IMG_2235":{"stem":"IMG_2235","prediction":{"climbing_segments":[{"start_time":0.0,"end_time":3.12,"duration":3.12},{"start_time":12.88,"end_time":23.88,"duration":11.0}],"raw_segments":[{"start_time":-0.12,"end_time":1.12,"duration":1.25},{"start_time":14.88,"end_time":22.62,"duration":7.75}],"uncertain_spans":[{"start_time":1.25,"end_time":1.25,"mean_p":0.418},{"start_time":15.0,"end_time":15.0,"mean_p":0.555},{"start_time":22.5,"end_time":22.75,"mean_p":0.45}],"duration":23.88,"scorer":"rule","total_climbing_time":14.12,"calibration":{"ground_y":0.8057,"body_h":0.4273,"hip_to_foot":0.5072,"confidence":1.0,"method":"percentile","n_frames_used":80,"notes":"body_h from 41 near-ground frames"},"frames_with_pose":93,"frames_analyzed":96,"posterior":[[0.0,0.9745,1],[0.25,0.9966,1],[0.5,0.9917,0],[0.75,0.9908,1],[1.0,0.9511,1],[1.25,0.4182,1],[1.5,0.2222,0],[1.75,0.0107,1],[2.0,0.0005,1],[2.25,0.0001,1],[2.5,0.0001,1],[2.75,0.0002,1],[3.0,0.0001,1],[3.25,0.0001,1],[3.5,0.0002,1],[3.75,0.0001,1],[4.0,0.0004,1],[4.25,0.0002,1],[4.5,0.0011,1],[4.75,0.0075,1],[5.0,0.0086,1],[5.25,0.0076,1],[5.5,0.0013,1],[5.75,0.0004,1],[6.0,0.0002,1],[6.25,0.0001,1],[6.5,0.0001,1],[6.75,0.0001,1],[7.0,0.0001,1],[7.25,0.0004,1],[7.5,0.0006,1],[7.75,0.0003,1],[8.0,0.0002,1],[8.25,0.0002,1],[8.5,0.0002,1],[8.75,0.0003,1],[9.0,0.0004,1],[9.25,0.0003,1],[9.5,0.0002,1],[9.75,0.0005,1],[10.0,0.0008,1],[10.25,0.0007,1],[10.5,0.0006,1],[10.75,0.0005,1],[11.0,0.0006,1],[11.25,0.0005,1],[11.5,0.0017,1],[11.75,0.0011,1],[12.0,0.0007,1],[12.25,0.0008,1],[12.5,0.0011,1],[12.75,0.0028,1],[13.0,0.0057,1],[13.25,0.0231,1],[13.5,0.0132,1],[13.75,0.024,1],[14.0,0.0276,1],[14.25,0.0257,1],[14.5,0.1188,1],[14.75,0.1903,1],[15.0,0.5548,1],[15.25,0.7541,1],[15.5,0.9612,1],[15.75,0.9907,1],[16.0,0.9979,1],[16.25,0.9991,1],[16.5,0.9994,1],[16.75,0.9992,1],[17.0,0.999,1],[17.25,0.9989,1],[17.5,0.9985,1],[17.75,0.9982,1],[18.0,0.9979,1],[18.25,0.9977,1],[18.5,0.998,1],[18.75,0.9984,1],[19.0,0.9984,1],[19.25,0.998,1],[19.5,0.9974,1],[19.75,0.9967,1],[20.0,0.9947,1],[20.25,0.9912,1],[20.5,0.9876,1],[20.75,0.9835,1],[21.0,0.9764,1],[21.25,0.9643,1],[21.5,0.9456,1],[21.75,0.9125,1],[22.0,0.8467,1],[22.25,0.7281,1],[22.5,0.5521,1],[22.75,0.3479,1],[23.0,0.1433,1],[23.25,0.0237,1],[23.5,0.0123,1],[23.75,0.0943,0]],"mtime":1790267550.7952967},"labels":null,"clips":[],"filename":"IMG_2235.mov","source":"IMG_2235.mov","uploaded":true,"duration":23.963,"fps":59.94,"resolution":"1080x1920","size_mb":12.7,"has_prediction":true,"has_labels":false,"proxy_ready":true,"clip_count":0,"clip_seconds":0},"GH010557":{"stem":"GH010557","prediction":null,"labels":null,"clips":[],"filename":"GH010557.mp4","source":"GH010557.mp4","uploaded":true,"duration":46.184,"fps":30.0,"resolution":"550x978","size_mb":6.1,"has_prediction":true,"has_labels":false,"proxy_ready":true,"clip_count":0,"clip_seconds":0},"IMG_3684":{"stem":"IMG_3684","prediction":{"climbing_segments":[{"start_time":0.0,"end_time":8.12,"duration":8.12},{"start_time":15.62,"end_time":36.62,"duration":21.0}],"raw_segments":[{"start_time":1.88,"end_time":6.12,"duration":4.25},{"start_time":17.62,"end_time":34.62,"duration":17.0}],"uncertain_spans":[{"start_time":0.5,"end_time":1.0,"mean_p":0.523},{"start_time":6.25,"end_time":6.25,"mean_p":0.518},{"start_time":17.5,"end_time":17.5,"mean_p":0.433},{"start_time":35.0,"end_time":35.75,"mean_p":0.434}],"duration":38.5,"scorer":"rule","total_climbing_time":29.12,"calibration":{"ground_y":0.7483,"body_h":0.242,"hip_to_foot":0.3678,"confidence":0.85,"method":"percentile","n_frames_used":64,"notes":"body_h from 17 near-ground frames"},"frames_with_pose":134,"frames_analyzed":154,"posterior":[[0.0,0.1708,0],[0.25,0.2984,0],[0.5,0.4161,0],[0.75,0.5254,0],[1.0,0.6277,0],[1.25,0.7245,0],[1.5,0.817,0],[1.75,0.9063,0],[2.0,0.9938,1],[2.25,0.9894,1],[2.5,0.9932,1],[2.75,0.9996,1],[3.0,0.9967,1],[3.25,0.9971,1],[3.5,0.9999,1],[3.75,1.0,1],[4.0,1.0,1],[4.25,1.0,1],[4.5,1.0,1],[4.75,1.0,1],[5.0,1.0,1],[5.25,1.0,1],[5.5,1.0,1],[5.75,0.9998,1],[6.0,0.9907,1],[6.25,0.5176,0],[6.5,0.0143,1],[6.75,0.004,1],[7.0,0.0002,1],[7.25,0.0001,1],[7.5,0.0001,1],[7.75,0.0001,1],[8.0,0.0001,1],[8.25,0.0001,1],[8.5,0.0001,1],[8.75,0.0001,1],[9.0,0.0001,1],[9.25,0.0001,1],[9.5,0.0001,1],[9.75,0.0001,1],[10.0,0.0001,1],[10.25,0.0001,1],[10.5,0.0001,1],[10.75,0.0001,1],[11.0,0.0001,1],[11.25,0.0001,1],[11.5,0.0001,1],[11.75,0.0001,1],[12.0,0.0001,1],[12.25,0.0001,1],[12.5,0.0001,1],[12.75,0.0001,1],[13.0,0.0001,1],[13.25,0.0002,1],[13.5,0.0002,1],[13.75,0.0004,1],[14.0,0.001,1],[14.25,0.0004,1],[14.5,0.0004,1],[14.75,0.0003,1],[15.0,0.0005,1],[15.25,0.0002,1],[15.5,0.0002,1],[15.75,0.0002,1],[16.0,0.0002,1],[16.25,0.0004,1],[16.5,0.0013,1],[16.75,0.0055,1],[17.0,0.0363,1],[17.25,0.1396,1],[17.5,0.4334,1],[17.75,0.7817,1],[18.0,0.9343,1],[18.25,0.9892,1],[18.5,0.9997,1],[18.75,0.9999,1],[19.0,0.9999,1],[19.25,0.9999,1],[19.5,0.9999,1],[19.75,0.9999,1],[20.0,0.9997,1],[20.25,0.9998,1],[20.5,0.9999,1],[20.75,0.9999,1],[21.0,0.9999,1],[21.25,0.9999,1],[21.5,1.0,1],[21.75,0.9999,1],[22.0,1.0,1],[22.25,0.9999,1],[22.5,0.9999,1],[22.75,0.9999,1],[23.0,0.9999,1],[23.25,0.9999,1],[23.5,0.9999,1],[23.75,0.9999,1],[24.0,0.9999,1],[24.25,1.0,1],[24.5,1.0,1],[24.75,1.0,1],[25.0,1.0,1],[25.25,1.0,1],[25.5,1.0,1],[25.75,1.0,1],[26.0,1.0,1],[26.25,1.0,1],[26.5,1.0,1],[26.75,1.0,1],[27.0,1.0,1],[27.25,1.0,1],[27.5,1.0,1],[27.75,1.0,1],[28.0,1.0,1],[28.25,1.0,1],[28.5,1.0,1],[28.75,1.0,1],[29.0,1.0,1],[29.25,1.0,1],[29.5,1.0,1],[29.75,1.0,1],[30.0,1.0,1],[30.25,0.9999,1],[30.5,0.9997,1],[30.75,0.9891,0],[31.0,0.9823,0],[31.25,0.9791,0],[31.5,0.9795,0],[31.75,0.9836,0],[32.0,0.9913,1],[32.25,0.9878,1],[32.5,0.9997,1],[32.75,0.9997,1],[33.0,0.9998,1],[33.25,0.9976,0],[33.5,0.9998,1],[33.75,0.9973,1],[34.0,0.9997,1],[34.25,0.9947,1],[34.5,0.9911,1],[34.75,0.7185,1],[35.0,0.6027,0],[35.25,0.4799,1],[35.5,0.3486,1],[35.75,0.3061,0],[36.0,0.2578,0],[36.25,0.2032,1],[36.5,0.2217,1],[36.75,0.0967,1],[37.0,0.0616,1],[37.25,0.0472,0],[37.5,0.027,0],[37.75,0.0006,1],[38.0,0.0001,1],[38.25,0.0019,1]],"mtime":1790215793.6062298},"labels":{"video":"IMG_3684.mov","duration":38.5,"labeled_at":"2026-09-24T03:48:49.732Z","tool":"studio","total_climbing_time":17.08,"segments":[{"start_time":13.729,"end_time":30.805,"duration":17.076}]},"clips":[{"clip":"IMG_3684_c01_0013.73-0030.80.mp4","path":"clips/IMG_3684/IMG_3684_c01_0013.73-0030.80.mp4","source_stem":"IMG_3684","start_time":13.729,"end_time":30.805,"duration":17.076,"label":"climbing","cut_mode":"reencode"}],"filename":"IMG_3684.mov","source":"IMG_3684.mov","uploaded":true,"duration":38.615,"fps":59.94,"resolution":"1080x1920","size_mb":19.2,"has_prediction":true,"has_labels":true,"proxy_ready":true,"clip_count":1,"clip_seconds":17.1},"IMG_2767_1":{"stem":"IMG_2767_1","prediction":{"climbing_segments":[{"start_time":0.0,"end_time":9.38,"duration":9.38},{"start_time":12.88,"end_time":21.88,"duration":9.0}],"raw_segments":[{"start_time":-0.12,"end_time":7.38,"duration":7.5},{"start_time":14.88,"end_time":19.88,"duration":5.0}],"uncertain_spans":[{"start_time":0.0,"end_time":0.0,"mean_p":0.694},{"start_time":14.75,"end_time":14.75,"mean_p":0.44}],"duration":27.12,"scorer":"rule","total_climbing_time":18.38,"calibration":{"ground_y":0.6971,"body_h":0.3019,"hip_to_foot":0.3813,"confidence":1.0,"method":"percentile","n_frames_used":96,"notes":"body_h from 49 near-ground frames"},"frames_with_pose":103,"frames_analyzed":109,"posterior":[[0.0,0.6942,1],[0.25,0.8707,1],[0.5,0.9534,1],[0.75,0.9831,1],[1.0,0.9935,1],[1.25,0.9973,1],[1.5,0.9987,1],[1.75,0.9989,1],[2.0,0.9993,1],[2.25,0.9998,1],[2.5,0.9998,1],[2.75,0.9994,1],[3.0,0.9996,1],[3.25,0.9993,1],[3.5,0.9993,1],[3.75,0.9997,1],[4.0,0.9997,1],[4.25,0.9997,1],[4.5,0.9997,1],[4.75,0.9998,1],[5.0,0.9996,1],[5.25,0.9994,1],[5.5,0.9993,1],[5.75,0.9992,1],[6.0,0.9992,1],[6.25,0.9989,1],[6.5,0.9971,1],[6.75,0.9831,1],[7.0,0.9453,1],[7.25,0.8396,1],[7.5,0.2657,1],[7.75,0.0225,1],[8.0,0.0018,1],[8.25,0.0001,1],[8.5,0.0001,1],[8.75,0.0001,1],[9.0,0.0001,1],[9.25,0.0001,1],[9.5,0.0002,1],[9.75,0.0002,1],[10.0,0.0002,1],[10.25,0.0004,1],[10.5,0.0004,1],[10.75,0.0009,1],[11.0,0.0007,1],[11.25,0.0006,1],[11.5,0.0005,1],[11.75,0.0007,1],[12.0,0.0009,1],[12.25,0.002,1],[12.5,0.0017,1],[12.75,0.0021,1],[13.0,0.0026,1],[13.25,0.0035,1],[13.5,0.0076,1],[13.75,0.0217,1],[14.0,0.0547,1],[14.25,0.1245,1],[14.5,0.2413,1],[14.75,0.4396,1],[15.0,0.7906,1],[15.25,0.9074,1],[15.5,0.9678,1],[15.75,0.9936,1],[16.0,0.998,1],[16.25,0.999,1],[16.5,0.9991,1],[16.75,0.9992,1],[17.0,0.999,1],[17.25,0.9996,1],[17.5,0.9996,1],[17.75,0.9996,1],[18.0,0.9996,1],[18.25,0.9992,1],[18.5,0.9991,1],[18.75,0.9992,1],[19.0,0.9997,1],[19.25,0.9988,1],[19.5,0.9882,1],[19.75,0.8659,1],[20.0,0.09,1],[20.25,0.0072,1],[20.5,0.0014,1],[20.75,0.0001,1],[21.0,0.0001,1],[21.25,0.0001,1],[21.5,0.0001,1],[21.75,0.0001,1],[22.0,0.0002,1],[22.25,0.0055,0],[22.5,0.0057,1],[22.75,0.0008,1],[23.0,0.0008,1],[23.25,0.0008,1],[23.5,0.0007,1],[23.75,0.0015,1],[24.0,0.0033,0],[24.25,0.0002,1],[24.5,0.0006,1],[24.75,0.0031,0],[25.0,0.0006,1],[25.25,0.0004,1],[25.5,0.0002,1],[25.75,0.0001,1],[26.0,0.0038,0],[26.25,0.0024,1],[26.5,0.0088,0],[26.75,0.0101,1],[27.0,0.0923,0]],"mtime":1790267572.437387},"labels":{"video":"IMG_2767_1.mov","duration":27.237,"labeled_at":"2026-09-24T16:15:26.358Z","tool":"studio","total_climbing_time":19.78,"segments":[{"start_time":0.125,"end_time":19.902,"duration":19.777}]},"clips":[{"clip":"IMG_2767_1_c01_0000.12-0019.90.mp4","path":"clips/IMG_2767_1/IMG_2767_1_c01_0000.12-0019.90.mp4","source_stem":"IMG_2767_1","start_time":0.125,"end_time":19.902,"duration":19.777,"label":"climbing","cut_mode":"reencode"}],"filename":"IMG_2767_1.mov","source":"IMG_2767_1.mov","uploaded":true,"duration":27.237,"fps":59.457,"resolution":"1080x1920","size_mb":10.5,"has_prediction":true,"has_labels":true,"proxy_ready":true,"clip_count":1,"clip_seconds":19.8}},"held":{"GH010557":{"climbing_segments":[{"start_time":7.62,"end_time":36.62,"duration":29.0}],"raw_segments":[{"start_time":11.12,"end_time":34.62,"duration":23.5}],"uncertain_spans":[{"start_time":10.25,"end_time":10.75,"mean_p":0.472},{"start_time":34.5,"end_time":38.5,"mean_p":0.675}],"duration":46.12,"scorer":"rule","total_climbing_time":29.0,"calibration":{"ground_y":0.8725,"body_h":0.4553,"hip_to_foot":0.2107,"confidence":1.0,"method":"percentile","n_frames_used":130,"notes":"body_h from 29 near-ground frames; sam floor (floor)","ground_slope":0.0,"ground_x0":0.0,"floor_edge":[0.85694,0.85694,0.85556,0.85556,0.85694,0.85694,0.85694,0.85694,0.85694,0.85694,0.85694,0.85694,0.85694,0.8577,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85833,0.85891,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.85972,0.86056,0.86111,0.86111,0.86111,0.86111,0.86111,0.86111,0.86111,0.86111,0.86111,0.86111,0.86111,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8625,0.8631,0.86389,0.86389,0.86389,0.86389,0.86389,0.86389,0.86389,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86528,0.86609,0.86667,0.86667,0.86621,0.86528,0.86528,0.86537,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86667,0.86806,0.86806,0.86667,0.86667,0.86724,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86771,0.86667,0.86723,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86928,0.8688,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86865,0.86944,0.86863,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806,0.86806],"floor_aspect":0.5611111111111111},"frames_with_pose":174,"frames_analyzed":185,"posterior":[[0.0,0.0173,1],[0.25,0.0208,1],[0.5,0.0235,1],[0.75,0.0254,1],[1.0,0.0267,1],[1.25,0.0271,1],[1.5,0.0269,1],[1.75,0.0258,1],[2.0,0.0241,1],[2.25,0.0216,1],[2.5,0.0183,1],[2.75,0.0143,1],[3.0,0.0095,1],[3.25,0.0039,1],[3.5,0.0025,1],[3.75,0.0003,1],[4.0,0.0004,1],[4.25,0.0001,1],[4.5,0.0,1],[4.75,0.0,1],[5.0,0.0,1],[5.25,0.0001,1],[5.5,0.0001,1],[5.75,0.0001,1],[6.0,0.0002,1],[6.25,0.0003,1],[6.5,0.0004,1],[6.75,0.0005,1],[7.0,0.0006,1],[7.25,0.0006,1],[7.5,0.0006,1],[7.75,0.0008,1],[8.0,0.001,1],[8.25,0.0013,1],[8.5,0.0021,1],[8.75,0.004,1],[9.0,0.008,1],[9.25,0.0165,1],[9.5,0.0343,1],[9.75,0.0735,1],[10.0,0.1561,1],[10.25,0.3003,1],[10.5,0.4571,1],[10.75,0.6592,1],[11.0,0.9098,1],[11.25,0.9953,1],[11.5,0.9999,1],[11.75,1.0,1],[12.0,1.0,1],[12.25,0.9997,1],[12.5,1.0,1],[12.75,1.0,1],[13.0,1.0,1],[13.25,1.0,1],[13.5,1.0,1],[13.75,1.0,1],[14.0,1.0,1],[14.25,1.0,1],[14.5,1.0,1],[14.75,1.0,1],[15.0,1.0,1],[15.25,1.0,1],[15.5,1.0,1],[15.75,1.0,1],[16.0,1.0,1],[16.25,1.0,1],[16.5,1.0,1],[16.75,1.0,1],[17.0,1.0,1],[17.25,1.0,1],[17.5,1.0,1],[17.75,1.0,1],[18.0,1.0,1],[18.25,1.0,1],[18.5,1.0,1],[18.75,1.0,1],[19.0,1.0,1],[19.25,1.0,1],[19.5,1.0,1],[19.75,1.0,1],[20.0,1.0,1],[20.25,1.0,1],[20.5,1.0,1],[20.75,1.0,1],[21.0,1.0,1],[21.25,1.0,1],[21.5,1.0,1],[21.75,1.0,1],[22.0,1.0,1],[22.25,1.0,1],[22.5,1.0,1],[22.75,1.0,1],[23.0,1.0,1],[23.25,1.0,1],[23.5,1.0,1],[23.75,1.0,1],[24.0,1.0,1],[24.25,1.0,1],[24.5,1.0,1],[24.75,1.0,1],[25.0,1.0,1],[25.25,1.0,1],[25.5,1.0,1],[25.75,1.0,1],[26.0,1.0,1],[26.25,1.0,1],[26.5,1.0,1],[26.75,1.0,1],[27.0,1.0,1],[27.25,1.0,1],[27.5,1.0,1],[27.75,1.0,1],[28.0,1.0,1],[28.25,1.0,1],[28.5,1.0,1],[28.75,1.0,1],[29.0,1.0,1],[29.25,1.0,1],[29.5,1.0,1],[29.75,1.0,1],[30.0,1.0,1],[30.25,1.0,1],[30.5,1.0,1],[30.75,1.0,1],[31.0,1.0,1],[31.25,1.0,1],[31.5,1.0,1],[31.75,1.0,1],[32.0,1.0,1],[32.25,1.0,1],[32.5,1.0,1],[32.75,1.0,1],[33.0,1.0,1],[33.25,1.0,1],[33.5,1.0,1],[33.75,0.9998,1],[34.0,0.9896,1],[34.25,0.7584,1],[34.5,0.6439,1],[34.75,0.6486,1],[35.0,0.6531,1],[35.25,0.6574,1],[35.5,0.6615,1],[35.75,0.6655,1],[36.0,0.6693,1],[36.25,0.6729,1],[36.5,0.6764,1],[36.75,0.6798,1],[37.0,0.683,1],[37.25,0.6861,1],[37.5,0.689,1],[37.75,0.6918,1],[38.0,0.6945,1],[38.25,0.6971,1],[38.5,0.6996,1],[38.75,0.702,1],[39.0,0.7043,1],[39.25,0.7065,0],[39.5,0.7086,0],[39.75,0.7106,0],[40.0,0.7126,0],[40.25,0.7144,0],[40.5,0.7162,0],[40.75,0.7179,0],[41.0,0.7196,0],[41.25,0.7211,1],[41.5,0.7226,1],[41.75,0.7241,1],[42.0,0.7255,1],[42.25,0.7268,1],[42.5,0.728,1],[42.75,0.7293,1],[43.0,0.7304,1],[43.25,0.7316,1],[43.5,0.7326,1],[43.75,0.7337,1],[44.0,0.7346,0],[44.25,0.7356,1],[44.5,0.7365,1],[44.75,0.7374,1],[45.0,0.7382,1],[45.25,0.739,1],[45.5,0.7398,0],[45.75,0.7405,1],[46.0,0.7412,0]],"mtime":1790484384.7682045}},"open":"IMG_2235"};
+  const BASE = new URL('.', location.href).href;
+  const now = () => Date.now() / 1000;
+  const clone = (x) => JSON.parse(JSON.stringify(x));
+  const r2 = (x) => Math.round(x * 100) / 100;
+
+  const vids = DATA.order.map((s) => clone(DATA.videos[s]));
+  const held = clone(DATA.held); // suggestions the detector "finds" when it runs
+  const jobs = [];
+  let seq = 0;
+
+  const find = (stem) => {
+    const v = vids.find((x) => x.stem === stem);
+    if (!v) throw Object.assign(new Error(`'${stem}'`), { status: 404 });
+    return v;
+  };
+  const row = (v) => ({
+    stem: v.stem, filename: v.filename, source: v.source, uploaded: v.uploaded,
+    duration: v.duration, fps: v.fps, resolution: v.resolution, size_mb: v.size_mb,
+    has_prediction: !!v.prediction, has_labels: !!v.labels, proxy_ready: true,
+    clip_count: v.clips.length,
+    clip_seconds: r2(v.clips.reduce((a, c) => a + c.duration, 0))
+  });
+  const allClips = () => vids.flatMap((v) => v.clips);
+  const segsOf = (v) => (v.labels || v.prediction || { segments: [] });
+
+  function job(kind, extra) {
+    const j = {
+      id: `demo-${++seq}`, kind, state: 'queued', progress: 0, message: 'waiting',
+      log: [], queued_at: now(), started_at: null, finished_at: null, error: null, result: null,
+      ...extra
+    };
+    jobs.push(j);
+    return j;
+  }
+  const say = (j, line) => { if (j.log[j.log.length - 1] !== line) j.log.push(line); j.message = line; };
+
+  // Local jobs run one at a time, like the real worker thread; Modal runs go beside them.
+  function tick() {
+    const t = now();
+    const local = jobs.filter((j) => j.kind !== 'modal' && (j.state === 'queued' || j.state === 'running'));
+    local.forEach((j, i) => { if (j.state === 'queued') j.position = i; });
+    const head = local[0];
+    if (head && head.state === 'queued') { head.state = 'running'; head.started_at = t; delete head.position; }
+    for (const j of jobs) if (j.state === 'running') step(j, t - j.started_at);
+    for (const j of jobs.filter((x) => x.kind === 'modal' && x.state === 'queued')) {
+      j.state = 'running'; j.started_at = t;
+    }
+  }
+  function finish(j, result) {
+    j.state = 'done'; j.progress = 1; j.finished_at = now(); j.result = result || null;
+  }
+
+  function step(j, el) {
+    if (j.kind === 'detect') {
+      const v = vids.find((x) => x.stem === j.video);
+      const lines = [
+        [0, `preprocess: ffmpeg → 720p @ 8 fps (${v.filename})`],
+        [1.2, 'pose: top-down tracking, 1 climber'],
+        [2.6, 'calibrate: floor line and on-screen body height'],
+        [3.8, `score: ${j.scorer} scorer on body-height features`],
+        [4.8, 'decode: HMM over per-frame posteriors']
+      ];
+      for (const [at, l] of lines) if (el >= at) say(j, l);
+      j.progress = Math.min(0.99, el / 6);
+      if (el >= 6) {
+        v.prediction = { ...(held[v.stem] || v.prediction), mtime: now() };
+        delete held[v.stem];
+        say(j, `wrote ${v.prediction.climbing_segments.length} segment(s)`);
+        finish(j, { segments: v.prediction.climbing_segments.length });
+      }
+    } else if (j.kind === 'modal') {
+      const per = 1.4;
+      j.stems.forEach((s, i) => {
+        if (el >= 0.8 + i * per && !j.ready_stems.includes(s)) {
+          j.ready_stems.push(s); say(j, `${s}: converted, sent to Modal`);
+        }
+        if (el >= 4.5 + i * per && !j.done_stems.includes(s)) {
+          const v = vids.find((x) => x.stem === s);
+          if (v) { v.prediction = { ...(held[s] || v.prediction), mtime: now() }; delete held[s]; }
+          j.done_stems.push(s); say(j, `${s}: suggestion written`);
+        }
+      });
+      j.message = `${j.done_stems.length}/${j.stems.length} suggested (simulated run, nothing sent)`;
+      j.progress = j.done_stems.length / j.stems.length;
+      if (j.done_stems.length === j.stems.length) finish(j);
+    } else if (j.kind === 'cut') {
+      const v = vids.find((x) => x.stem === j.video);
+      const n = j.segments.length, per = 0.9;
+      const i = Math.min(n, Math.floor(el / per));
+      j.progress = Math.min(0.99, el / (per * n + 0.3));
+      if (i < n) j.message = `cutting ${i + 1}/${n}: ${clipName(v, j.segments[i], i)}`;
+      if (el >= per * n + 0.3) {
+        const removed = j.replace ? v.clips.length : 0;
+        if (j.replace) v.clips = [];
+        const base = v.clips.length;
+        j.segments.forEach((g, k) => {
+          const d = r2(g.end_time - g.start_time);
+          v.clips.push({
+            clip: clipName(v, g, base + k), path: `clips/${v.stem}/${clipName(v, g, base + k)}`,
+            source_stem: v.stem, start_time: g.start_time, end_time: g.end_time, duration: d,
+            label: 'climbing', cut_mode: j.mode
+          });
+        });
+        say(j, `wrote ${n} clip(s)` + (removed ? `, replaced ${removed}` : ''));
+        finish(j, { clips: n, removed });
+      }
+    }
+  }
+  const pad = (x) => x.toFixed(2).padStart(7, '0');
+  const clipName = (v, g, i) =>
+    `${v.stem}_c${String(i + 1).padStart(2, '0')}_${pad(g.start_time)}-${pad(g.end_time)}.mp4`;
+
+  const routes = {
+    'GET /api/state': () => ({
+      videos: vids.map(row),
+      jobs: jobs.map((j) => ({ ...j, log: j.log.slice(-6) })),
+      clip_total: { count: allClips().length, seconds: r2(allClips().reduce((a, c) => a + c.duration, 0)) },
+      tuned: {}
+    }),
+    'GET /api/jobs': () => ({ jobs: clone(jobs) }),
+    'GET /api/video': (q) => {
+      const v = find(q.get('video'));
+      return { ...clone(v), ...row(v) };
+    },
+    'POST /api/proxy': () => ({ ok: true }),
+    'POST /api/upload': () => {
+      throw new Error('uploads are off in this demo — it works on the bundled footage');
+    },
+    'POST /api/detect': (q, b) => {
+      find(b.video);
+      return { job: job('detect', { video: b.video, scorer: b.scorer || 'rule' }).id };
+    },
+    'POST /api/detect_modal': (q, b) => ({
+      job: job('modal', { stems: b.videos, ready_stems: [], done_stems: [], failed: [] }).id
+    }),
+    'POST /api/labels': (q, b) => {
+      const v = find(b.video);
+      const segments = b.segments.map((s) => ({ ...s, duration: r2(s.end_time - s.start_time) }));
+      const total = r2(segments.reduce((a, s) => a + s.duration, 0));
+      v.labels = {
+        video: v.filename, duration: b.duration, labeled_at: new Date().toISOString(),
+        tool: 'studio', total_climbing_time: total, segments
+      };
+      return { segments: segments.length, total_climbing_time: total, path: `labels/${v.stem}_gt.json` };
+    },
+    'POST /api/cut': (q, b) => {
+      find(b.video);
+      return { job: job('cut', { video: b.video, mode: b.mode, replace: !!b.replace, segments: b.segments }).id };
+    },
+    'POST /api/cut_bulk': (q, b) => {
+      const plan = [], skipped = {};
+      for (const s of b.videos) {
+        const v = find(s);
+        const src = v.labels ? 'labels' : v.prediction ? 'suggestion' : null;
+        if (!src) { skipped[s] = 'no labels or suggestion'; continue; }
+        const segs = src === 'labels' ? v.labels.segments : v.prediction.climbing_segments;
+        if (!segs.length) { skipped[s] = 'nothing marked as climbing'; continue; }
+        plan.push({
+          video: s, source: src, segments: segs.length,
+          seconds: r2(segs.reduce((a, g) => a + (g.end_time - g.start_time), 0)),
+          _segs: segs.map((g) => ({ start_time: g.start_time, end_time: g.end_time }))
+        });
+      }
+      if (!b.dry_run)
+        for (const p of plan)
+          p.job = job('cut', { video: p.video, mode: b.mode, replace: true, segments: p._segs }).id;
+      return { plan: plan.map(({ _segs, ...p }) => p), skipped };
+    },
+    'POST /api/delete_clip': (q, b) => {
+      for (const v of vids) v.clips = v.clips.filter((c) => c.clip !== b.clip);
+      return { ok: true };
+    },
+    'POST /api/remove_video': (q, b) => {
+      const removed = [];
+      for (const s of b.videos) {
+        const i = vids.findIndex((v) => v.stem === s);
+        if (i >= 0) { vids.splice(i, 1); removed.push({ video: s }); }
+      }
+      return { removed, errors: {} };
+    },
+    'POST /api/cancel': (q, b) => {
+      const j = jobs.find((x) => x.id === b.job);
+      if (j && (j.state === 'queued' || j.state === 'running')) {
+        j.state = 'cancelled'; j.finished_at = now(); j.message = 'cancelled';
+      }
+      return { ok: true };
+    }
+  };
+
+  const realFetch = window.fetch.bind(window);
+  window.fetch = async (input, opts = {}) => {
+    const url = new URL(typeof input === 'string' ? input : input.url, location.origin);
+    if (!url.pathname.startsWith('/api/')) return realFetch(input, opts);
+    const key = `${(opts.method || 'GET').toUpperCase()} ${url.pathname}`;
+    const body = typeof opts.body === 'string' ? JSON.parse(opts.body || '{}') : {};
+    let status = 200, out;
+    try {
+      tick();
+      const fn = routes[key];
+      if (!fn) throw Object.assign(new Error('no route'), { status: 404 });
+      out = fn(url.searchParams, body);
+      tick();
+    } catch (e) {
+      status = e.status || 400;
+      out = { error: e.message };
+    }
+    await new Promise((r) => setTimeout(r, 60));
+    return new Response(JSON.stringify(out), { status, headers: { 'Content-Type': 'application/json' } });
+  };
+
+  // Footage is fetched whole and played from a blob URL: Workers static assets answer Range
+  // requests with a full 200, which breaks seeking on a plain <video src>.
+  const blobs = {};
+  window.DEMO = {
+    async media(stem) {
+      if (!blobs[stem]) {
+        blobs[stem] = realFetch(BASE + 'media/' + encodeURIComponent(stem) + '.mp4')
+          .then((r) => r.blob())
+          .then((b) => URL.createObjectURL(b));
+      }
+      return blobs[stem];
+    },
+    // A cut clip plays as a time range of its source.
+    async clip(c) {
+      return (await this.media(c.source_stem)) + `#t=${c.start_time},${c.end_time}`;
+    }
+  };
+
+  if (!location.hash) history.replaceState(null, '', '#v=' + encodeURIComponent(DATA.open));
+})();
+
+</script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const fmt = t => {
+  if (!isFinite(t)) return "0:00.00";
+  const s = Math.max(0,t), m = Math.floor(s/60);
+  return `${m}:${(s-m*60).toFixed(2).padStart(5,"0")}`;
+};
+
+const S = {
+  videos: [], jobs: [], cur: null, det: null,
+  segs: [], sel: -1, dirty: false, duration: 0,
+  watch: null, previewEnd: null, poll: 4000,
+  picked: new Set(), lastPick: null,   // sidebar multi-select for bulk actions
+  tab: "work", openLogs: new Set(),
+};
+
+/* ---------------- server ---------------- */
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  const j = await r.json().catch(()=>({error:"bad response"}));
+  if (!r.ok || j.error) throw new Error(j.error || r.statusText);
+  return j;
+}
+function say(msg, bad){
+  $("#status").textContent = msg || "";
+  $("#status").className = bad ? "err" : "";
+  if (msg && !bad) clearTimeout(say.t), say.t = setTimeout(()=>{
+    if ($("#status").textContent === msg) $("#status").textContent = "";
+  }, 6000);
+}
+
+async function refresh(){
+  try{
+    const st = await api("/api/state");
+    S.videos = st.videos; S.jobs = st.jobs;
+    $("#tally").textContent =
+      `${st.clip_total.count} clips · ${(st.clip_total.seconds/60).toFixed(1)} min of training data`;
+    drawList(); drawJob(); drawQueue();
+    const n = st.jobs.filter(live).length;
+    $("#qn").hidden = !n; $("#qn").textContent = n;
+    const active = st.jobs.some(j => j.state === "running" || j.state === "queued");
+    S.poll = active ? 900 : 4000;
+    const want = decodeURIComponent((location.hash.match(/^#v=(.+)$/) || [])[1] || "");
+    if (!S.cur && want && S.videos.some(v => v.stem === want)) openVideo(want);
+  }catch(e){ say("server: " + e.message, true); S.poll = 4000; }
+  clearTimeout(refresh.t); refresh.t = setTimeout(refresh, S.poll);
+}
+
+/* ---------------- sidebar ---------------- */
+const live = j => j.state === "running" || j.state === "queued";
+// A local detect job for this video, or a Modal run that has not reached it yet.
+function detecting(stem){
+  return S.jobs.find(j => live(j) && (
+    (j.kind === "detect" && j.video === stem) ||
+    (j.kind === "modal" && j.stems.includes(stem) && !j.done_stems.includes(stem))));
+}
+function drawModal(){
+  const box = $("#modalRun");
+  const runs = S.jobs.filter(x => x.kind === "modal" &&
+      (live(x) || Date.now()/1000 - (x.finished_at || 0) < 120))
+    .sort((a,b) => a.queued_at - b.queued_at);
+  box.hidden = !runs.length;
+  box.className = runs.some(j => j.state === "error") ? "err" : "";
+  box.innerHTML = runs.map(j => {
+    const n = `${j.done_stems.length}/${j.stems.length}`;
+    return `<div>${esc(
+      j.state === "error"     ? `Modal failed (${n}): ${j.error}` :
+      j.state === "cancelled" ? `Modal stopped at ${n}` :
+      j.state === "done"      ? `Modal done: ${j.stems.length - j.failed.length}/${j.stems.length} suggested` +
+                                (j.failed.length ? `; failed ${j.failed.join(", ")}` : "") :
+                                `Modal ${n} · ${j.message}`)}</div>`;
+  }).join("");
+  box.title = "open the Queue tab for details";
+  box.style.cursor = "pointer";
+  box.onclick = () => setTab("queue");
+}
+const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function drawList(){
+  const box = $("#vlist");
+  box.innerHTML = "";
+  const stems = S.videos.map(v => v.stem);
+  for (const s of [...S.picked]) if (!stems.includes(s)) S.picked.delete(s);
+  for (const v of S.videos){
+    const d = document.createElement("div");
+    d.className = "vrow" + (S.cur === v.stem ? " on" : "");
+    const chips = [];
+    const job = detecting(v.stem) || S.jobs.find(j => live(j) && j.kind === "cut" && j.video === v.stem);
+    if (job) chips.push(`<span class="chip run">${job.kind === "modal" ? "on Modal"
+      : job.state === "queued" ? "queued " + job.kind
+      : (job.kind === "cut" ? "cutting " : "detecting ") + Math.round(job.progress*100) + "%"}</span>`);
+    if (v.has_prediction) chips.push('<span class="chip sug">suggested</span>');
+    if (v.has_labels) chips.push('<span class="chip ok">labeled</span>');
+    if (v.clip_count) chips.push(`<span class="chip cut">${v.clip_count} clip${v.clip_count>1?"s":""}</span>`);
+    d.innerHTML = `<span class="top"><input type="checkbox"${S.picked.has(v.stem) ? " checked" : ""}>
+      <span class="nm">${v.stem}</span><span class="rm" title="remove from the studio">&times;</span></span>
+      <span class="meta"><span class="mono">${fmt(v.duration)}</span>${chips.join("")}</span>`;
+    d.querySelector(".rm").onclick = e => { e.stopPropagation(); removeVideos([v.stem]); };
+    const cb = d.querySelector("input");
+    cb.onclick = e => { e.stopPropagation(); pick(v.stem, cb.checked, e.shiftKey); };
+    d.onclick = e => {
+      if (e.shiftKey || e.metaKey || e.ctrlKey){
+        e.preventDefault();
+        pick(v.stem, e.shiftKey && S.lastPick ? true : !S.picked.has(v.stem), e.shiftKey);
+      } else openVideo(v.stem);
+    };
+    d.onmousedown = e => { if (e.shiftKey) e.preventDefault(); };   // no text selection on shift-click
+    box.appendChild(d);
+  }
+  if (!S.videos.length) box.innerHTML = '<div class="empty">No videos yet.</div>';
+  drawBulk(); drawModal();
+}
+
+/* Shift-click extends from the last box you touched, like a file manager. */
+function pick(stem, on, range){
+  const stems = S.videos.map(v => v.stem);
+  const a = stems.indexOf(S.lastPick), b = stems.indexOf(stem);
+  const span = range && a >= 0 ? stems.slice(Math.min(a,b), Math.max(a,b) + 1) : [stem];
+  for (const s of span) on ? S.picked.add(s) : S.picked.delete(s);
+  S.lastPick = stem;
+  drawList();
+}
+function drawBulk(){
+  const n = S.picked.size, all = $("#pickAll");
+  all.checked = n > 0 && n === S.videos.length;
+  all.indeterminate = n > 0 && n < S.videos.length;
+  $("#pickN").textContent = n ? `${n} selected` : "select";
+  $("#bulkDetect").disabled = $("#bulkCut").disabled = $("#bulkRemove").disabled = !n;
+}
+$("#pickAll").onclick = () => {
+  if (S.picked.size) S.picked.clear();
+  else S.videos.forEach(v => S.picked.add(v.stem));
+  drawList();
+};
+$("#pickNew").onclick = () => {
+  S.picked = new Set(S.videos.filter(v => !v.has_prediction).map(v => v.stem));
+  drawList();
+  if (!S.picked.size) say("every video already has a suggestion");
+};
+$("#bulkCut").onclick = async () => {
+  const videos = S.videos.map(v => v.stem).filter(s => S.picked.has(s));
+  const mode = $("#mode").value;
+  try{
+    const dry = await api("/api/cut_bulk", {method:"POST",
+      body: JSON.stringify({videos, mode, dry_run: true})});
+    const from = k => dry.plan.filter(r => r.source === k);
+    const why = {};
+    for (const [stem, r] of Object.entries(dry.skipped)) (why[r] ||= []).push(stem);
+    const secs = dry.plan.reduce((a, r) => a + r.seconds, 0);
+    const lines = [
+      `Cut ${dry.plan.length} video(s), ${dry.plan.reduce((a, r) => a + r.segments, 0)} clips, ` +
+        `${(secs/60).toFixed(1)} min (${mode === "copy" ? "fast stream copy" : "accurate re-encode"}):`,
+      `  ${from("labels").length} from your labels`,
+      `  ${from("suggestion").length} from detector suggestions (unreviewed; labels are not written)`,
+      ...Object.entries(why).map(([r, s]) => `Skipping ${s.length} — ${r}: ${s.slice(0, 6).join(", ")}${s.length > 6 ? " …" : ""}`),
+    ];
+    if (!dry.plan.length) return alert(lines.slice(3).join("\n") || "Nothing to cut.");
+    if (!confirm(lines.join("\n"))) return;
+    const r = await api("/api/cut_bulk", {method:"POST", body: JSON.stringify({videos, mode})});
+    const mine = r.plan.find(x => x.video === S.cur);
+    if (mine) S.watch = {id: mine.job, then: "cut"};
+    S.picked.clear(); S.lastPick = null;
+    say(`queued ${r.plan.length} video(s) for cutting — they run one at a time`);
+    refresh();
+  }catch(e){ say(e.message, true); }
+};
+$("#bulkDetect").onclick = async () => {
+  // Already being detected (locally or on Modal): skip, so two runs never
+  // write the same video's suggestion.
+  const todo = S.videos.map(v => v.stem).filter(s => S.picked.has(s) && !detecting(s));
+  const skipped = S.picked.size - todo.length;
+  if (!todo.length) return say("those videos are already being detected");
+  const redo = todo.filter(s => S.videos.find(v => v.stem === s)?.has_prediction).length;
+  if (redo && !confirm(`${redo} of ${todo.length} already have a suggestion; it will be replaced. Continue?`)) return;
+  try{
+    const r = await api("/api/detect_modal", {method:"POST",
+      body: JSON.stringify({videos: todo, force: redo > 0})});
+    if (todo.includes(S.cur)) S.watch = {id: r.job, then: "detect", stem: S.cur};
+    S.picked.clear(); S.lastPick = null;
+    say(`sent ${todo.length} video${todo.length === 1 ? "" : "s"} to Modal` +
+        (skipped ? ` (${skipped} already running)` : ""));
+    refresh();
+  }catch(e){ say(e.message, true); }
+};
+
+/* ---------------- open a video ---------------- */
+async function openVideo(stem){
+  if (S.dirty && S.cur !== stem &&
+      !confirm("Unsaved segment edits on " + S.cur + ". Discard them?")) return;
+  S.cur = stem; S.sel = -1; S.dirty = false; S.previewEnd = null;
+  history.replaceState(null, "", "#v=" + encodeURIComponent(stem));
+  $("#blank").hidden = true; $("#editor").hidden = false;
+  drawList();
+
+  const d = await api("/api/video?video=" + encodeURIComponent(stem));
+  S.det = d;
+  S.duration = d.prediction?.duration || d.duration || 0;
+  $("#vname").textContent = d.filename;
+  $("#vmeta").textContent =
+    `${fmt(d.duration)} · ${d.resolution} · ${d.fps} fps · ${d.size_mb} MB` +
+    (d.proxy_ready ? "" : " · building proxy…");
+
+  const p = $("#player");
+  const want = "/media/" + encodeURIComponent(stem) + (d.proxy_ready ? "?proxy=1" : "");
+  if (p.dataset.want !== want){ p.dataset.want = want; p.poster = "media/" + encodeURIComponent(stem) + ".webp"; p.src = await DEMO.media(stem); p.load(); }   // keep position on re-open
+
+  // Prefer your own corrections; fall back to the detector's suggestion.
+  if (d.labels?.segments?.length) S.segs = d.labels.segments.map(s => ({s:s.start_time, e:s.end_time}));
+  else if (d.prediction) S.segs = d.prediction.climbing_segments.map(s => ({s:s.start_time, e:s.end_time}));
+  else S.segs = [];
+
+  $("#labState").innerHTML = d.labels
+    ? `saved: <b>${d.labels.segments.length} segments, ${d.labels.total_climbing_time}s</b>`
+    : "<span style='color:var(--faint)'>no labels saved yet</span>";
+
+  drawPred(); drawSegs(); drawClips(); paint();
+  if (!d.proxy_ready) api("/api/proxy", {method:"POST", body: JSON.stringify({video: stem})}).catch(()=>{});
+}
+
+function drawPred(){
+  const d = S.det, box = $("#predInfo");
+  const pr = d.prediction;
+  if (!pr){ box.innerHTML = '<div class="kv">not run yet &mdash; press <b>Suggest segments</b></div>';
+            $("#predWhen").textContent = ""; return; }
+  $("#predWhen").textContent = new Date(pr.mtime*1000).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+  const pose = pr.frames_analyzed ? Math.round(100*pr.frames_with_pose/pr.frames_analyzed) : 0;
+  box.innerHTML = `
+    <div class="kv"><span>scorer</span><b>${pr.scorer}</b></div>
+    <div class="kv"><span>suggested</span><b>${pr.climbing_segments.length} seg · ${pr.total_climbing_time}s</b></div>
+    <div class="kv"><span>pose found</span><b>${pose}% of frames</b></div>
+    <div class="kv"><span>calibration</span><b>${pr.calibration ? pr.calibration.confidence.toFixed(2) : "—"}</b></div>
+    <div class="kv"><span>uncertain spans</span><b>${(pr.uncertain_spans||[]).length}</b></div>`;
+}
+
+/* ---------------- segments ---------------- */
+function norm(){
+  // Sorted, non-overlapping, nothing shorter than a frame or two: the invariant
+  // labels/*_gt.json requires, enforced on every edit so it can never be broken.
+  S.segs.forEach(g => { g.s = clamp(g.s, 0, S.duration); g.e = clamp(g.e, 0, S.duration); });
+  const keep = S.sel >= 0 ? S.segs[S.sel] : null;
+  const out = [];
+  for (const g of S.segs.sort((a,b) => a.s - b.s)){
+    const prev = out[out.length-1];
+    if (prev && g.s < prev.e) g.s = prev.e;   // a segment drawn inside another
+    if (g.e - g.s > 0.05) out.push(g);        // collapses to nothing, so it goes
+  }
+  S.segs = out;
+  S.sel = keep ? out.indexOf(keep) : -1;
+}
+function touch(){ S.dirty = true; drawSegs(); paint(); }
+
+function drawSegs(){
+  const box = $("#segList"); box.innerHTML = "";
+  const total = S.segs.reduce((a,g) => a + g.e - g.s, 0);
+  $("#segTally").textContent = `${S.segs.length} · ${total.toFixed(1)}s` + (S.dirty ? " *" : "");
+  S.segs.forEach((g,i) => {
+    const r = document.createElement("div");
+    r.className = "srow" + (i === S.sel ? " on" : "");
+    r.innerHTML = `<span class="n">${i+1}</span>
+      <input type="number" step="0.05" class="mono" value="${g.s.toFixed(2)}" data-k="s">
+      <input type="number" step="0.05" class="mono" value="${g.e.toFixed(2)}" data-k="e">
+      <span class="d mono">${(g.e-g.s).toFixed(1)}s</span>
+      <span class="x" title="remove">&times;</span>`;
+    r.onclick = ev => { if (ev.target.tagName !== "INPUT"){ S.sel = i; seek(g.s); drawSegs(); paint(); } };
+    r.querySelectorAll("input").forEach(inp => {
+      inp.onchange = () => { g[inp.dataset.k] = parseFloat(inp.value) || 0; norm(); touch(); };
+      inp.onfocus = () => { S.sel = i; drawSegs(); paint(); };
+    });
+    r.querySelector(".x").onclick = ev => { ev.stopPropagation(); S.segs.splice(i,1); S.sel = -1; touch(); };
+    box.appendChild(r);
+  });
+  if (!S.segs.length) box.innerHTML = '<div class="empty">No segments. Run the detector, or press <kbd>n</kbd>.</div>';
+}
+
+function drawClips(){
+  const box = $("#clipList"), cl = S.det?.clips || [];
+  box.innerHTML = "";
+  $("#clipTally").textContent = cl.length ? `${cl.length} · ${cl.reduce((a,c)=>a+c.duration,0).toFixed(0)}s` : "";
+  for (const c of cl){
+    const r = document.createElement("div");
+    r.className = "crow";
+    r.innerHTML = `<span class="nm mono" title="${c.path}">${c.clip}</span>
+      <span class="d mono">${c.duration.toFixed(1)}s</span>
+      <span class="x" style="cursor:pointer;color:var(--faint)" title="delete clip">&times;</span>`;
+    r.querySelector(".nm").onclick = () => {
+      const ex = r.nextElementSibling;
+      if (ex && ex.tagName === "VIDEO"){ ex.remove(); return; }
+      const v = document.createElement("video");
+      v.controls = true; v.style.width = "100%"; DEMO.clip(c).then(u => { v.src = u; v.play().catch(()=>{}); });
+      r.after(v); v.play().catch(()=>{});
+    };
+    r.querySelector(".x").onclick = async () => {
+      if (!confirm("Delete clip file " + c.clip + "?")) return;
+      await api("/api/delete_clip", {method:"POST", body: JSON.stringify({clip: c.clip})});
+      say("deleted " + c.clip); await openVideo(S.cur); refresh();
+    };
+    box.appendChild(r);
+  }
+  if (!cl.length) box.innerHTML = '<div class="empty">No clips cut from this video yet.</div>';
+}
+
+/* ---------------- timeline ---------------- */
+const tl = $("#tl"), cv = $("#tlc"), ctx = cv.getContext("2d");
+const T2X = t => S.duration ? t / S.duration * tl.clientWidth : 0;
+const X2T = x => S.duration ? clamp(x / tl.clientWidth * S.duration, 0, S.duration) : 0;
+
+function paint(){
+  const w = tl.clientWidth, h = tl.clientHeight, dpr = devicePixelRatio || 1;
+  cv.width = w*dpr; cv.height = h*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = "#11161d"; ctx.fillRect(0,0,w,h);
+
+  const pr = S.det?.prediction;
+  const BASE = 46, AMP = 40;   // posterior baseline, leaving a gap above row 2
+  ctx.fillStyle = "#0b0f14"; ctx.fillRect(0,0,w,BASE);
+  if (pr?.posterior?.length){
+    const y = p => BASE - AMP*(p ?? 0);
+    ctx.fillStyle = "#1a2430";   // frames where no pose was found at all
+    for (const [t,,seen] of pr.posterior) if (!seen) ctx.fillRect(T2X(t)-1, 0, 2, BASE);
+    ctx.beginPath(); ctx.moveTo(0,BASE);
+    for (const [t,p] of pr.posterior) ctx.lineTo(T2X(t), y(p));
+    ctx.lineTo(w,BASE); ctx.closePath();
+    ctx.fillStyle = "rgba(77,163,255,.18)"; ctx.fill();
+    ctx.beginPath();
+    pr.posterior.forEach(([t,p],i) => i ? ctx.lineTo(T2X(t), y(p)) : ctx.moveTo(T2X(t), y(p)));
+    ctx.strokeStyle = "#4da3ff"; ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.strokeStyle = "#2a323d"; ctx.setLineDash([3,3]); ctx.beginPath();
+    ctx.moveTo(0, y(0.5)); ctx.lineTo(w, y(0.5)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "#5c6774"; ctx.font = "9px ui-monospace,Menlo,monospace";
+    ctx.fillText("p(climbing)", 4, 10);
+  } else {
+    ctx.fillStyle = "#5c6774"; ctx.font = "11px ui-sans-serif";
+    ctx.fillText("no detector run yet", 8, 27);
+  }
+
+  // row 2: what the detector proposed, amber where its posterior was undecided
+  ctx.fillStyle = "#171d25"; ctx.fillRect(0,50,w,6);
+  if (pr){
+    ctx.fillStyle = "#a371f7";
+    for (const s of pr.climbing_segments) ctx.fillRect(T2X(s.start_time), 50, Math.max(2,T2X(s.end_time)-T2X(s.start_time)), 6);
+    ctx.fillStyle = "rgba(210,153,34,.9)";
+    for (const u of (pr.uncertain_spans||[])){
+      const a = u.start_time ?? u.start, b = u.end_time ?? u.end;
+      if (a != null) ctx.fillRect(T2X(a), 50, Math.max(2,T2X(b)-T2X(a)), 6);
+    }
+    ctx.fillStyle = "#5c6774"; ctx.font = "9px ui-monospace,Menlo,monospace";
+    ctx.fillText("suggested", 4, 36);
+  }
+
+  // row 3 (58-98) is DOM (#segLayer). row 4: ruler
+  ctx.fillStyle = "#0b0f14"; ctx.fillRect(0,58,w,40);
+  ctx.strokeStyle = "#2a323d"; ctx.lineWidth = 1;
+  ctx.strokeRect(.5,58.5,w-1,39);
+  const step = S.duration > 240 ? 60 : S.duration > 90 ? 20 : S.duration > 30 ? 10 : 5;
+  ctx.font = "9px ui-monospace,Menlo,monospace";
+  for (let t=0; t<=S.duration; t+=step){
+    const x = T2X(t);
+    ctx.strokeStyle = "#2a323d"; ctx.beginPath(); ctx.moveTo(x+.5,100); ctx.lineTo(x+.5,106); ctx.stroke();
+    ctx.fillStyle = "#5c6774"; ctx.fillText(fmt(t), Math.min(x+3, w-30), 116);
+  }
+  paintSegs(); movePlayhead();
+}
+
+function paintSegs(){
+  const layer = $("#segLayer");
+  layer.innerHTML = "";
+  S.segs.forEach((g,i) => {
+    const d = document.createElement("div");
+    d.className = "seg" + (i === S.sel ? " on" : "");
+    d.style.left = T2X(g.s) + "px";
+    d.style.width = Math.max(4, T2X(g.e) - T2X(g.s)) + "px";
+    d.innerHTML = `<span class="lab">${i+1} &middot; ${(g.e-g.s).toFixed(1)}s</span>
+                   <div class="h l"></div><div class="h r"></div>`;
+    d.onpointerdown = ev => startDrag(ev, i, d);
+    layer.appendChild(d);
+  });
+}
+
+function startDrag(ev, i, el){
+  ev.preventDefault(); ev.stopPropagation();
+  S.sel = i; drawSegs(); paintSegs();
+  const g = S.segs[i], rect = tl.getBoundingClientRect();
+  const mode = ev.target.classList.contains("l") ? "l"
+             : ev.target.classList.contains("r") ? "r" : "move";
+  const t0 = X2T(ev.clientX - rect.left), s0 = g.s, e0 = g.e;
+  const prev = S.segs[i-1], next = S.segs[i+1];
+  const lo = prev ? prev.e : 0, hi = next ? next.s : S.duration;
+
+  const move = mv => {
+    const dt = X2T(mv.clientX - rect.left) - t0;
+    if (mode === "move"){
+      const w = e0 - s0;
+      g.s = clamp(s0 + dt, lo, hi - w); g.e = g.s + w;
+    } else if (mode === "l"){
+      g.s = clamp(s0 + dt, lo, g.e - 0.1);
+    } else {
+      g.e = clamp(e0 + dt, g.s + 0.1, hi);
+    }
+    el.style.left = T2X(g.s) + "px";
+    el.style.width = Math.max(4, T2X(g.e) - T2X(g.s)) + "px";
+    el.querySelector(".lab").textContent = `${i+1} · ${(g.e-g.s).toFixed(1)}s`;
+    seek(mode === "r" ? g.e : g.s);
+  };
+  const up = () => {
+    removeEventListener("pointermove", move); removeEventListener("pointerup", up);
+    norm(); touch();
+  };
+  addEventListener("pointermove", move); addEventListener("pointerup", up);
+}
+
+// click to seek; shift-drag on the track to draw a new segment
+tl.onpointerdown = ev => {
+  if (ev.target.closest(".seg")) return;
+  const rect = tl.getBoundingClientRect();
+  const t0 = X2T(ev.clientX - rect.left);
+  if (!ev.shiftKey){ seek(t0); return; }
+  ev.preventDefault();
+  const g = {s:t0, e:t0+0.05};
+  S.segs.push(g); S.sel = S.segs.length-1;
+  const move = mv => {
+    const t = X2T(mv.clientX - rect.left);
+    g.s = Math.min(t0,t); g.e = Math.max(t0,t); paintSegs();
+  };
+  const up = () => {
+    removeEventListener("pointermove", move); removeEventListener("pointerup", up);
+    norm(); touch();
+  };
+  addEventListener("pointermove", move); addEventListener("pointerup", up);
+};
+
+/* ---------------- player ---------------- */
+const player = $("#player");
+function seek(t){ player.currentTime = clamp(t, 0, S.duration || player.duration || 0); }
+function movePlayhead(){
+  $("#head").style.left = T2X(player.currentTime || 0) + "px";
+  $("#clock").innerHTML = `<b>${fmt(player.currentTime||0)}</b> / ${fmt(S.duration)}`;
+}
+(function loop(){ if (!$("#editor").hidden) movePlayhead(); requestAnimationFrame(loop); })();
+
+player.addEventListener("loadedmetadata", () => {
+  if (!S.duration || Math.abs(player.duration - S.duration) > 1) S.duration = player.duration;
+  paint();
+});
+player.addEventListener("timeupdate", () => {
+  if (S.previewEnd != null && player.currentTime >= S.previewEnd){ player.pause(); S.previewEnd = null; }
+});
+player.addEventListener("play",  () => $("#play").textContent = "Pause");
+player.addEventListener("pause", () => $("#play").textContent = "Play");
+$("#play").onclick = () => player.paused ? player.play() : player.pause();
+$("#rate").onchange = e => player.playbackRate = parseFloat(e.target.value);
+document.querySelectorAll("[data-nudge]").forEach(b =>
+  b.onclick = () => seek(player.currentTime + parseFloat(b.dataset.nudge)));
+
+function setEdge(which){
+  const t = player.currentTime;
+  if (S.sel < 0){
+    if (which === "s"){ S.segs.push({s:t, e:Math.min(S.duration, t+2)}); S.sel = S.segs.length-1; norm(); touch(); }
+    else say("select a segment first", true);
+    return;
+  }
+  const g = S.segs[S.sel];
+  if (which === "s") g.s = Math.min(t, g.e - 0.1); else g.e = Math.max(t, g.s + 0.1);
+  norm(); touch();
+}
+$("#setIn").onclick = () => setEdge("s");
+$("#setOut").onclick = () => setEdge("e");
+$("#addSeg").onclick = () => {
+  const t = player.currentTime;
+  S.segs.push({s:t, e:Math.min(S.duration, t+3)}); S.sel = S.segs.length-1; norm(); touch();
+};
+function preview(){
+  if (S.sel < 0) return;
+  const g = S.segs[S.sel];
+  seek(g.s); S.previewEnd = g.e; player.play().catch(()=>{});
+}
+
+/* ---------------- remove ---------------- */
+async function removeVideos(stems){
+  const busy = stems.filter(s => detecting(s) || S.jobs.some(j => live(j) && j.kind === "cut" && j.video === s));
+  const go = stems.filter(s => !busy.includes(s));
+  if (!go.length) return say("those videos have jobs running — cancel them or wait first", true);
+  const what = go.length === 1 ? go[0] : `${go.length} videos`;
+  if (!confirm(`Remove ${what} from the studio?\n\n` +
+      `The video file(s) move to studio_data/removed/, so this can be undone by moving them back. ` +
+      `Their proxy and detector suggestion are deleted; labels and any cut clips are kept.` +
+      (busy.length ? `\n\nSkipping ${busy.length} with jobs running: ${busy.slice(0, 6).join(", ")}` : ""))) return;
+  try{
+    const r = await api("/api/remove_video", {method:"POST", body: JSON.stringify({videos: go})});
+    for (const x of r.removed) S.picked.delete(x.video);
+    if (r.removed.some(x => x.video === S.cur)){
+      S.cur = null; S.dirty = false; history.replaceState(null, "", location.pathname);
+      $("#editor").hidden = true; $("#blank").hidden = false;
+      player.removeAttribute("src"); player.load();
+    }
+    const errs = Object.entries(r.errors);
+    say(`removed ${r.removed.length}` +
+        (errs.length ? `; failed ${errs.map(([s, e]) => `${s} (${e})`).join(", ")}` : ""), errs.length > 0);
+    refresh();
+  }catch(e){ say(e.message, true); }
+}
+$("#bulkRemove").onclick = () => removeVideos(S.videos.map(v => v.stem).filter(s => S.picked.has(s)));
+
+/* ---------------- tabs ---------------- */
+function setTab(t){
+  S.tab = t;
+  try{ localStorage.setItem("studio.tab", t); }catch(e){}
+  $("#work").hidden = t !== "work";
+  $("#queue").hidden = t !== "queue";
+  for (const b of $$("#tabs button")) b.classList.toggle("on", b.dataset.tab === t);
+  if (t === "queue") drawQueue();
+  else if (!$("#editor").hidden) paint();
+}
+for (const b of $$("#tabs button")) b.onclick = () => setTab(b.dataset.tab);
+
+/* ---------------- queue ---------------- */
+const ago = s => {
+  s = Math.max(0, Math.round(s));
+  return s < 60 ? `${s}s` : s < 3600 ? `${Math.floor(s/60)}m ${s%60}s`
+       : `${Math.floor(s/3600)}h ${Math.floor(s%3600/60)}m`;
+};
+const KIND = {detect: "suggest (local)", modal: "suggest on Modal", cut: "cut", proxy: "proxy"};
+
+function jobCard(j){
+  const now = Date.now()/1000;
+  const d = document.createElement("div");
+  d.className = "job " + j.state;
+  const who = j.kind === "modal" ? `${j.stems.length} videos`
+    : `<a data-open="${esc(j.video)}">${esc(j.video)}</a>`;
+  const when =
+    j.state === "running" ? `running ${ago(now - j.started_at)}` :
+    j.state === "queued"  ? (j.position ? `#${j.position} in line · ` : "") + `waiting ${ago(now - j.queued_at)}` :
+    `${j.state} ${ago(now - (j.finished_at || now))} ago` +
+      (j.started_at ? ` · took ${ago((j.finished_at || now) - j.started_at)}` : "");
+  const stop = j.kind === "modal" && j.state === "running";
+  const canCancel = j.state === "queued" || stop;
+  const pct = Math.round(j.progress * 100);
+  d.innerHTML = `<div class="hd"><span class="kind ${j.kind}">${KIND[j.kind] || j.kind}</span>
+      <span class="who">${who}</span><span class="when">${when}</span><span class="spacer"></span>
+      ${live(j) ? `<span class="mono when">${pct}%</span>` : ""}
+      ${canCancel ? `<button class="tiny" data-cancel="${esc(j.id)}">${stop ? "Stop" : "Cancel"}</button>` : ""}
+    </div>
+    ${live(j) ? `<div class="bar"><i style="width:${pct}%"></i></div>` : ""}
+    <div class="msg">${esc(j.state === "error" ? j.error : j.message)}</div>`;
+
+  if (j.kind === "modal"){
+    const st = s => j.failed.includes(s) ? "failed" : j.done_stems.includes(s) ? "done"
+                  : (j.ready_stems || []).includes(s) ? "ready" : "";
+    const count = k => j.stems.filter(s => st(s) === k).length;
+    d.insertAdjacentHTML("beforeend", `<div class="legend">
+        <span>converting ${count("")}</span><span>sent to Modal ${count("ready")}</span>
+        <span>suggested ${count("done")}</span>
+        ${count("failed") ? `<span style="color:var(--bad)">failed ${count("failed")}</span>` : ""}</div>
+      <div class="stems">${j.stems.map(s =>
+        `<span class="${st(s)}" data-open="${esc(s)}" title="${st(s) || "converting"}">${esc(s)}</span>`).join("")}</div>`);
+  }
+  if (j.log?.length)
+    d.insertAdjacentHTML("beforeend", `<details ${S.openLogs.has(j.id) ? "open" : ""} data-log="${esc(j.id)}">
+      <summary>log (last ${j.log.length} lines)</summary><pre>${esc(j.log.join("\n"))}</pre></details>`);
+  return d;
+}
+
+async function drawQueue(){
+  if (S.tab !== "queue") return;
+  let jobs;
+  try{ jobs = (await api("/api/jobs")).jobs; }catch(e){ return say("queue: " + e.message, true); }
+  const box = $("#queue"), keep = box.scrollTop;
+  // Don't redraw under an open log the user is scrolling or selecting in.
+  const pre = document.activeElement?.closest?.("#queue pre");
+  if (pre || window.getSelection()?.toString()) return;
+  box.innerHTML = `<div class="kv"><span>Local jobs (suggest, cut, proxy) run one at a time on this Mac.
+    Modal runs go in parallel beside them. Click a video name to open it.</span></div>`;
+  const groups = [
+    ["Running", jobs.filter(j => j.state === "running")],
+    ["Queued", jobs.filter(j => j.state === "queued").sort((a, b) => (a.position || 0) - (b.position || 0))],
+    ["Finished this session", jobs.filter(j => !live(j))],
+  ];
+  for (const [title, list] of groups){
+    box.insertAdjacentHTML("beforeend", `<h3>${title} (${list.length})</h3>`);
+    if (!list.length) box.insertAdjacentHTML("beforeend", `<div class="empty">None.</div>`);
+    for (const j of list) box.appendChild(jobCard(j));
+  }
+  box.scrollTop = keep;
+}
+
+$("#queue").addEventListener("click", async e => {
+  const open = e.target.closest("[data-open]");
+  if (open && S.videos.some(v => v.stem === open.dataset.open)){
+    setTab("work");
+    return openVideo(open.dataset.open);
+  }
+  const c = e.target.closest("[data-cancel]");
+  if (!c) return;
+  const j = S.jobs.find(x => x.id === c.dataset.cancel);
+  if (j?.kind === "modal" && j.state === "running" &&
+      !confirm("Stop this Modal run?\n\nSuggestions it has already written are kept; the rest are not computed."))
+    return;
+  c.disabled = true;
+  try{
+    await api("/api/cancel", {method:"POST", body: JSON.stringify({job: c.dataset.cancel})});
+    refresh();
+  }catch(err){ say(err.message, true); c.disabled = false; }
+});
+// Keep open logs open across the redraw on every poll.
+$("#queue").addEventListener("toggle", e => {
+  const id = e.target.dataset?.log;
+  if (id) e.target.open ? S.openLogs.add(id) : S.openLogs.delete(id);
+}, true);
+
+/* ---------------- actions ---------------- */
+$("#detect").onclick = async () => {
+  try{
+    const r = await api("/api/detect", {method:"POST", body: JSON.stringify(
+      {video: S.cur, scorer: $("#scorer").value})});
+    S.watch = {id: r.job, then: "detect"};
+    say("detector queued — a minute or two per video");
+    refresh();
+  }catch(e){ say(e.message, true); }
+};
+$("#accept").onclick = () => {
+  const pr = S.det?.prediction;
+  if (!pr) return say("nothing suggested yet", true);
+  S.segs = pr.climbing_segments.map(s => ({s:s.start_time, e:s.end_time}));
+  S.sel = -1; norm(); touch(); say(`took ${S.segs.length} suggested segments`);
+};
+$("#clearAll").onclick = () => { if (S.segs.length && confirm("Remove all segments?")){ S.segs=[]; S.sel=-1; touch(); } };
+$("#save").onclick = async () => {
+  try{
+    const r = await api("/api/labels", {method:"POST", body: JSON.stringify({
+      video: S.cur, duration: S.duration,
+      segments: S.segs.map(g => ({start_time:g.s, end_time:g.e}))})});
+    S.dirty = false;
+    $("#labState").innerHTML = `saved: <b>${r.segments} segments, ${r.total_climbing_time}s</b> → ${r.path}`;
+    drawSegs(); say("labels written to " + r.path); refresh();
+  }catch(e){ say(e.message, true); }
+};
+$("#cut").onclick = async () => {
+  if (!S.segs.length) return say("no segments to cut", true);
+  const existing = S.det?.clips?.length || 0;
+  const rep = $("#replace").checked;
+  const warn = rep && existing
+    ? `\n\nThis replaces the ${existing} clip file(s) already cut from this video.` : "";
+  if (!confirm(`Cut ${S.segs.length} clip(s) from ${S.det.filename}?${warn}`)) return;
+  if (S.dirty) await $("#save").onclick();
+  try{
+    const r = await api("/api/cut", {method:"POST", body: JSON.stringify({
+      video: S.cur, mode: $("#mode").value, replace: rep,
+      segments: S.segs.map(g => ({start_time:g.s, end_time:g.e}))})});
+    S.watch = {id: r.job, then: "cut"};
+    say("cutting …"); refresh();
+  }catch(e){ say(e.message, true); }
+};
+
+/* ---------------- jobs ---------------- */
+function drawJob(){
+  const mine = S.jobs.filter(j => j.video === S.cur)
+                     .sort((a,b) => b.queued_at - a.queued_at)[0];
+  const card = $("#jobCard");
+  if (!mine || mine.state === "done" || mine.state === "error"){
+    card.hidden = !(mine && mine.state === "error");
+    if (mine && mine.state === "error"){
+      $("#jobTitle").textContent = mine.kind + " failed";
+      $("#jobLog").textContent = mine.error;
+      $("#jobBar").style.width = "0%";
+    }
+  } else {
+    card.hidden = false;
+    $("#jobTitle").textContent = {detect:"Detecting", cut:"Cutting clips", proxy:"Building proxy"}[mine.kind] || mine.kind;
+    $("#jobBar").style.width = Math.round(mine.progress*100) + "%";
+    $("#jobLog").textContent = (mine.log || []).slice(-3).join("\n");
+  }
+  $("#detect").disabled = !!detecting(S.cur);
+
+  const px = S.jobs.find(j => j.kind === "proxy" && j.video === S.cur && j.state === "done");
+  if (px && S.proxySeen !== px.id){
+    S.proxySeen = px.id;
+    const at = player.currentTime;
+    player.src = "/media/" + encodeURIComponent(S.cur) + "?proxy=1";
+    player.load();
+    player.addEventListener("loadedmetadata", () => seek(at), {once:true});
+    $("#vmeta").textContent = $("#vmeta").textContent.replace(" \u00b7 building proxy\u2026", "");
+  }
+
+  if (S.watch){
+    const j = S.jobs.find(x => x.id === S.watch.id);
+    const reached = j && S.watch.stem && j.done_stems?.includes(S.watch.stem) && !j.failed.includes(S.watch.stem);
+    if (j && (reached || j.state === "done" || j.state === "error")){
+      const what = S.watch.then, stem = S.watch.stem; S.watch = null;
+      if (j.state === "error" && !reached) say(what + " failed: " + j.error, true);
+      else if (stem && stem !== S.cur){ /* you moved on; the sidebar shows it */ }
+      else if (what === "detect"){
+        const keepEdits = S.dirty && S.segs.length;
+        openVideo(S.cur).then(() => {
+          say(`detector found ${S.det?.prediction?.climbing_segments?.length ?? 0} segments`);
+          if (keepEdits) say("detector done — your unsaved edits were replaced by the new suggestion");
+        });
+      } else if (what === "cut"){
+        openVideo(S.cur).then(() => say(`wrote ${j.result?.clips ?? 0} clips` +
+          (j.result?.removed ? `, replaced ${j.result.removed}` : "")));
+      }
+    }
+  }
+}
+
+/* ---------------- upload ---------------- */
+async function upload(files){
+  for (const f of files){
+    say(`uploading ${f.name} …`);
+    try{
+      const r = await api("/api/upload?name=" + encodeURIComponent(f.name), {method:"POST", body:f});
+      say(`${f.name} added`);
+      await refresh();
+      openVideo(r.stem);
+    }catch(e){ say(`${f.name}: ${e.message}`, true); }
+  }
+}
+$("#drop").onclick = () => $("#file").click();
+$("#file").onchange = e => { upload(e.target.files); e.target.value = ""; };
+["dragenter","dragover"].forEach(k => $("#drop").addEventListener(k, e => {
+  e.preventDefault(); $("#drop").classList.add("over"); }));
+["dragleave","drop"].forEach(k => $("#drop").addEventListener(k, e => {
+  e.preventDefault(); $("#drop").classList.remove("over"); }));
+$("#drop").addEventListener("drop", e => upload(e.dataTransfer.files));
+addEventListener("dragover", e => e.preventDefault());
+addEventListener("drop", e => e.preventDefault());
+
+/* ---------------- keys ---------------- */
+addEventListener("keydown", e => {
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if ((e.metaKey || e.ctrlKey) && e.key === "s"){ e.preventDefault(); $("#save").click(); return; }
+  if (e.metaKey || e.ctrlKey || $("#editor").hidden) return;
+  const k = e.key.toLowerCase();
+  const step = e.shiftKey ? 1 : e.altKey ? 0.033 : 0.1;
+  if (k === " "){ e.preventDefault(); $("#play").click(); }
+  else if (e.key === "ArrowLeft"){ e.preventDefault(); seek(player.currentTime - step); }
+  else if (e.key === "ArrowRight"){ e.preventDefault(); seek(player.currentTime + step); }
+  else if (k === "i") setEdge("s");
+  else if (k === "o") setEdge("e");
+  else if (k === "n") $("#addSeg").click();
+  else if (k === "a") $("#accept").click();
+  else if (k === "enter") preview();
+  else if (k === "delete" || k === "backspace" || k === "x"){
+    if (S.sel >= 0){ e.preventDefault(); S.segs.splice(S.sel,1); S.sel = -1; touch(); }
+  }
+  else if (k === "[") { if (S.sel>=0){ S.segs[S.sel].s -= step; norm(); touch(); } }
+  else if (k === "]") { if (S.sel>=0){ S.segs[S.sel].e += step; norm(); touch(); } }
+});
+addEventListener("resize", () => { if (!$("#editor").hidden) paint(); });
+addEventListener("beforeunload", e => { if (S.dirty){ e.preventDefault(); e.returnValue = ""; } });
+
+try{ if (localStorage.getItem("studio.tab") === "queue") setTab("queue"); }catch(e){}
+refresh();
+</script>
+</body>
+</html>

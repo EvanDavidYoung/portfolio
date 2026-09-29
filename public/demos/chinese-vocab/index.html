@@ -1,0 +1,983 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <title>Chinese Vocab App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f2f1ec;
+      --paper: #fffef9;
+      --paper-2: #f8f6ef;
+      --ink: #202522;
+      --muted: #66706a;
+      --line: #d8d9d2;
+      --line-strong: #b7bcb4;
+      --accent: #bf3d2f;
+      --accent-ink: #fffaf5;
+      --accent-soft: #f4dfd8;
+      --green: #356b57;
+      --green-soft: #dfebe5;
+      --amber: #8b611e;
+      --amber-soft: #f2e7cf;
+      --shadow: 0 18px 50px rgba(44, 52, 46, .08);
+      --focus: #0b6bcb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #171a18;
+        --paper: #202420;
+        --paper-2: #272c28;
+        --ink: #edf0ec;
+        --muted: #aeb8b0;
+        --line: #3a413b;
+        --line-strong: #626d64;
+        --accent: #e87864;
+        --accent-ink: #211310;
+        --accent-soft: #492a25;
+        --green: #87c4a6;
+        --green-soft: #253d32;
+        --amber: #e3b96c;
+        --amber-soft: #43371f;
+        --shadow: 0 18px 50px rgba(0, 0, 0, .22);
+        --focus: #78b9ff;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg); }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "Source Sans 3", "Noto Sans TC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, textarea, input { font: inherit; }
+    button { color: inherit; }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid color-mix(in srgb, var(--focus) 55%, transparent); outline-offset: 3px; }
+    .app-shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 28px;
+    }
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      min-height: calc(100vh - 56px);
+      display: flex;
+      flex-direction: column;
+    }
+    .side-intro { padding: 8px 10px 26px; }
+    .side-intro .han {
+      font-family: "Noto Sans TC", sans-serif;
+      font-weight: 700;
+      font-size: 30px;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+    }
+    .side-intro p { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .nav { display: grid; gap: 4px; }
+    .nav button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 12px;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      font-weight: 600;
+    }
+    .nav button:hover { background: var(--paper-2); }
+    .nav button.active { background: var(--paper); color: var(--accent); box-shadow: 0 1px 0 var(--line); }
+    .nav .step { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+    .nav svg { width: 19px; height: 19px; stroke-width: 1.8; }
+    .side-status {
+      margin-top: auto;
+      border-top: 1px solid var(--line);
+      padding: 18px 10px 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .side-status strong { display: block; color: var(--ink); margin-bottom: 6px; }
+    .progress-track { height: 5px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+    .progress-track span { display: block; height: 100%; width: 0; background: var(--green); transition: width .25s ease; }
+    .main { min-width: 0; }
+    .panel {
+      display: none;
+      background: var(--paper);
+      min-height: calc(100vh - 56px);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .panel.active { display: block; }
+    .panel-head { padding: 36px 40px 24px; border-bottom: 1px solid var(--line); }
+    .eyebrow { color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3, .zh { font-family: "Noto Sans TC", sans-serif; }
+    h1 { margin: 8px 0 10px; font-size: clamp(30px, 4vw, 46px); line-height: 1.14; letter-spacing: -.035em; }
+    h2 { font-size: 26px; margin-bottom: 8px; letter-spacing: -.02em; }
+    h3 { font-size: 18px; margin-bottom: 8px; }
+    .lead { color: var(--muted); max-width: 670px; font-size: 17px; line-height: 1.6; margin: 0; }
+    .panel-body { padding: 30px 40px 44px; }
+    .source-strip {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 17px 18px;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      margin-bottom: 28px;
+    }
+    .source-strip strong { font-family: "Noto Sans TC", sans-serif; display: block; margin-bottom: 4px; }
+    .source-strip p { color: var(--muted); margin: 0; font-size: 14px; }
+    .source-link { color: var(--accent); font-size: 14px; font-weight: 600; white-space: nowrap; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .section { padding: 26px 0; border-top: 1px solid var(--line); }
+    .section:first-child { border-top: 0; padding-top: 0; }
+    .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 14px; }
+    .section-head p { margin: 0; color: var(--muted); font-size: 14px; }
+    .step-num {
+      display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: 9px;
+      border: 1px solid var(--line-strong); border-radius: 50%; color: var(--muted); font: 600 13px "Source Sans 3", sans-serif;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      color: var(--ink);
+      background: var(--paper-2);
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 14px 15px;
+    }
+    textarea { min-height: 150px; resize: vertical; line-height: 1.65; font-family: "Noto Sans TC", sans-serif; }
+    #json-input { min-height: 120px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+    input::placeholder, textarea::placeholder { color: var(--muted); opacity: .82; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .btn {
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 10px 15px;
+      background: var(--paper);
+      font-weight: 650;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      text-decoration: none;
+    }
+    .btn:hover { border-color: var(--ink); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .btn.green { background: var(--green); border-color: var(--green); color: var(--paper); }
+    @media (prefers-color-scheme: dark) { .btn.green { color: #14241d; } }
+    .btn.ghost { border-color: transparent; background: transparent; }
+    .btn.small { min-height: 34px; padding: 6px 10px; font-size: 13px; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .hint { color: var(--muted); font-size: 13px; margin: 10px 0 0; line-height: 1.5; }
+    .guide-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; }
+    .guide-block { border-top: 3px solid var(--ink); padding-top: 14px; }
+    .guide-block ul, .guide-block ol { margin: 10px 0 0; padding-left: 21px; color: var(--muted); line-height: 1.7; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
+    .stat { padding: 15px; background: var(--paper-2); border-radius: 8px; }
+    .stat strong { display: block; font-size: 23px; font-variant-numeric: tabular-nums; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    .toolbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 18px; }
+    .filter-group { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter-btn { border: 1px solid var(--line); background: transparent; border-radius: 99px; padding: 6px 11px; cursor: pointer; font-size: 13px; }
+    .filter-btn.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+    .review-list { display: grid; gap: 12px; }
+    .review-card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .review-main { display: grid; grid-template-columns: minmax(120px, .8fr) 1.4fr auto; gap: 22px; align-items: start; padding: 20px; }
+    .term { font-family: "Noto Sans TC", sans-serif; font-size: 26px; font-weight: 700; letter-spacing: .02em; }
+    .pinyin { color: var(--accent); margin-top: 4px; font-size: 14px; }
+    .pos { display: inline-block; margin-top: 9px; font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 2px 7px; text-transform: uppercase; letter-spacing: .06em; }
+    .definition { font-weight: 650; margin-bottom: 10px; }
+    .example { color: var(--muted); line-height: 1.55; }
+    .example .zh { color: var(--ink); margin-bottom: 3px; }
+    .card-actions { display: flex; gap: 6px; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--amber); margin-right: 7px; }
+    .review-card[data-status="approved"] .status-dot { background: var(--green); }
+    .review-card[data-status="rejected"] { opacity: .58; }
+    .review-card[data-status="rejected"] .status-dot { background: var(--muted); }
+    .edit-area { display: none; padding: 18px 20px 20px; border-top: 1px solid var(--line); background: var(--paper-2); }
+    .edit-area.open { display: block; }
+    .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field label { display: block; color: var(--muted); font-size: 12px; font-weight: 650; margin-bottom: 5px; }
+    .field.wide { grid-column: 1 / -1; }
+    .field input { padding: 9px 10px; background: var(--paper); }
+    .empty { padding: 44px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 10px; }
+    .quiz-shell { max-width: 700px; margin: 0 auto; }
+    .quiz-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px auto 28px; max-width: 620px; text-align: left; }
+    .quiz-mode { border: 1px solid var(--line-strong); background: var(--paper-2); border-radius: 10px; padding: 18px; cursor: pointer; }
+    .quiz-mode:hover { border-color: var(--ink); }
+    .quiz-mode strong { display: block; font-family: "Noto Sans TC", sans-serif; font-size: 17px; margin-bottom: 5px; }
+    .quiz-mode span { color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .quiz-mode.recommended { border-color: var(--accent); }
+    .quiz-mode .mode-label { display: inline-block; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; }
+    .content-question { font-family: "Noto Sans TC", sans-serif; font-size: clamp(24px, 4vw, 34px); font-weight: 650; line-height: 1.45; max-width: 650px; margin: 0 auto; }
+    .article-reader { max-width: 760px; margin: 0 auto; }
+    .article-reader .article-intro { font-size: 18px; line-height: 1.85; color: var(--ink); }
+    .article-reader h3 { margin: 36px 0 14px; padding-top: 24px; border-top: 2px solid var(--ink); font-size: 22px; }
+    .article-reader h4 { margin: 26px 0 8px; color: var(--accent); font-family: "Noto Sans TC", sans-serif; font-size: 16px; }
+    .article-reader p { font-family: "Noto Sans TC", sans-serif; font-size: 16px; line-height: 1.9; margin-bottom: 15px; }
+    .article-reader blockquote { margin: 18px 0; padding: 2px 0 2px 18px; border-left: 3px solid var(--accent); color: var(--muted); }
+    .article-reader blockquote p { margin-bottom: 0; }
+    .reading-note { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+    .quiz-meta { display: flex; justify-content: space-between; color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+    .quiz-progress { height: 6px; background: var(--line); border-radius: 5px; overflow: hidden; margin-bottom: 32px; }
+    .quiz-progress span { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s ease; }
+    .quiz-prompt { text-align: center; padding: 18px 0 30px; }
+    .quiz-word { font-family: "Noto Sans TC", sans-serif; font-size: clamp(40px, 8vw, 68px); font-weight: 700; }
+    .quiz-pinyin { color: var(--accent); margin-top: 7px; }
+    .option-list { display: grid; gap: 10px; }
+    .option {
+      width: 100%; text-align: left; border: 1px solid var(--line-strong); background: var(--paper-2); border-radius: 9px;
+      padding: 15px 16px; cursor: pointer; display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: center;
+    }
+    .option:hover { border-color: var(--ink); }
+    .option .key { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 5px; font-size: 12px; }
+    .option.correct { border-color: var(--green); background: var(--green-soft); }
+    .option.wrong { border-color: var(--accent); background: var(--accent-soft); }
+    .feedback { min-height: 62px; margin-top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .feedback p { margin: 0; color: var(--muted); }
+    .feedback strong { color: var(--ink); }
+    .quiz-start, .quiz-result { text-align: center; padding: 48px 12px; }
+    .quiz-start .big, .quiz-result .big { font-family: "Noto Sans TC", sans-serif; font-size: 52px; font-weight: 700; margin-bottom: 8px; }
+    .quiz-start p, .quiz-result p { color: var(--muted); max-width: 470px; margin: 0 auto 22px; }
+    .study-shell { max-width: 700px; margin: 0 auto; }
+    .study-top { display: flex; justify-content: space-between; color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+    .flashcard {
+      min-height: 410px; border: 1px solid var(--line-strong); background: var(--paper-2); border-radius: 12px;
+      padding: 42px; display: flex; flex-direction: column; justify-content: center; text-align: center; position: relative;
+    }
+    .flash-term { font-family: "Noto Sans TC", sans-serif; font-weight: 700; font-size: clamp(48px, 9vw, 78px); line-height: 1.2; }
+    .flash-pinyin { color: var(--accent); font-size: 18px; margin-top: 12px; }
+    .flash-answer { display: none; margin-top: 30px; border-top: 1px solid var(--line); padding-top: 24px; }
+    .flash-answer.visible { display: block; }
+    .flash-meaning { font-size: 21px; font-weight: 650; }
+    .flash-sentence { margin-top: 20px; color: var(--muted); line-height: 1.65; }
+    .flash-sentence .zh { color: var(--ink); font-size: 17px; }
+    .reveal-row { margin-top: 16px; }
+    .rating-row { display: none; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+    .rating-row.visible { display: grid; }
+    .rating { border: 1px solid var(--line-strong); border-radius: 8px; background: var(--paper); padding: 10px 6px; cursor: pointer; }
+    .rating span { display: block; font-weight: 700; }
+    .rating small { display: block; color: var(--muted); margin-top: 2px; }
+    .session-note { color: var(--muted); font-size: 13px; text-align: center; margin-top: 14px; }
+    .export-layout { display: grid; grid-template-columns: 1fr .9fr; gap: 28px; }
+    .export-box { padding: 22px; border: 1px solid var(--line); border-radius: 10px; }
+    .export-box h3 { margin-bottom: 6px; }
+    .export-box p { color: var(--muted); line-height: 1.55; }
+    .field-list { margin: 18px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+    .field-list li { display: flex; justify-content: space-between; gap: 18px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+    .field-list span:last-child { color: var(--muted); }
+    .toast {
+      position: fixed; z-index: 20; left: 50%; bottom: 28px; transform: translate(-50%, 16px);
+      background: var(--ink); color: var(--paper); border-radius: 8px; padding: 11px 16px; font-size: 14px;
+      opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; box-shadow: var(--shadow);
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @media (max-width: 820px) {
+      .app-shell { display: block; padding: 0; }
+      .sidebar { position: sticky; z-index: 10; top: 0; min-height: 0; background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+      .side-intro, .side-status { display: none; }
+      .nav { grid-template-columns: repeat(5, 1fr); gap: 0; }
+      .nav button { display: flex; flex-direction: column; gap: 3px; padding: 9px 3px 8px; border-radius: 0; text-align: center; font-size: 11px; }
+      .nav button.active { box-shadow: inset 0 -3px var(--accent); }
+      .nav svg { width: 18px; height: 18px; }
+      .nav .step { display: none; }
+      .panel { border: 0; border-radius: 0; box-shadow: none; min-height: calc(100vh - 56px); }
+      .panel-head { padding: 28px 20px 20px; }
+      .panel-body { padding: 22px 20px 36px; }
+      .guide-grid, .export-layout, .quiz-modes { grid-template-columns: 1fr; }
+      .review-main { grid-template-columns: 1fr; gap: 12px; }
+      .card-actions { justify-content: flex-start; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+      .flashcard { min-height: 390px; padding: 28px 20px; }
+      .edit-grid { grid-template-columns: 1fr; }
+      .field.wide { grid-column: auto; }
+      .source-strip { flex-direction: column; }
+    }
+    @media (max-width: 420px) {
+      .nav button { font-size: 10px; }
+      .panel-head { padding-top: 24px; }
+      .rating-row { grid-template-columns: 1fr 1fr; }
+      .feedback { align-items: stretch; flex-direction: column; }
+      .feedback .btn { width: 100%; }
+      .stats-row { gap: 7px; }
+      .stat { padding: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Workspace navigation">
+      <div class="side-intro">
+        <div class="han">讀 · 記 · 用</div>
+        <p>Turn an article into vocabulary you can actually review.</p>
+      </div>
+      <nav class="nav">
+        <button class="active" data-tab="quiz" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 1 1 3.7 2c-1 .6-1.5 1.1-1.5 2M12 17h.01"/></svg><span>Quiz</span><span class="step">01</span></button>
+        <button data-tab="article"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 3h9l3 3v15H6z"/><path d="M9 11h6M9 15h6M15 3v4h4"/></svg><span>Article</span><span class="step">02</span></button>
+        <button data-tab="review"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h5M8 16h7"/></svg><span>Review</span><span class="step">03</span></button>
+        <button data-tab="study"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5zM20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z"/></svg><span>Study</span><span class="step">04</span></button>
+        <button data-tab="export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12M8 11l4 4 4-4M5 20h14"/></svg><span>Export</span><span class="step">05</span></button>
+      </nav>
+      <div class="side-status">
+        <strong id="side-count">12 cards in session</strong>
+        <span id="side-sub">0 reviewed · ready to begin</span>
+        <div class="progress-track"><span id="side-progress"></span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="panel" id="panel-article">
+        <header class="panel-head">
+          <div class="eyebrow">Traditional Chinese reading</div>
+          <h1>我們逃不掉的 discouraged 時間</h1>
+          <p class="lead">先做詞彙熱身，再讀這份繁體中文精讀稿。讀完後回到 Quiz，選擇 Article comprehension 檢查理解。</p>
+        </header>
+        <div class="panel-body">
+          <div class="source-strip">
+            <div>
+              <strong>我們逃不掉的 discouraged 時間</strong>
+              <p>QQ News · prepared set · 12 vocabulary cards</p>
+            </div>
+            <a class="source-link" href="https://news.qq.com/rain/a/20260828A03VFI00" target="_blank" rel="noopener noreferrer">Read source ↗</a>
+          </div>
+
+          <section class="section article-reader">
+            <div class="section-head"><h2>繁體中文全文</h2><p>完整轉換</p></div>
+            <p class="reading-note">原文簡體字已完整轉為繁體字；段落、標題與受訪者內容均保留。</p>
+            <p class="article-intro">不久前，數學家王虹在回顧自己的求學經歷時，用「discouraged」描述了自己在北大讀書時的心理狀態。很快，這成為了社交網絡中的熱議話題。</p>
+            <p>我們因此發起徵集「我的 discouraged 時間」，不到一天的時間，收到了將近500份問卷。很多人對這個詞表達了深切的理解和共鳴，也表示自己曾遭遇這樣的困境。不少人提到，一說到 discouraged，最直接的反應，就是「整個人立刻被蒙上一層陰影」，甚至還有人已經寫了一半的問卷，又最終刪掉、退出。</p>
+            <p>整理和篩選這些問卷的過程，我們感受到了很多無奈和痛苦，心碎和彷徨，也因此看到了一個個體如何承受著來自各方的搓磨。</p>
+            <p>最多的 discouraged 時間，仍然是求學階段，尤其是讀博期間。很多人提到，自己從小成長在重視成績、充滿比較的環境中，不管是學習、競賽還是論文撰寫階段，每一環都得不到支持和正反饋，甚至，收穫的是譏諷和嘲笑，這讓他們慢慢失去鑽研專業的心氣。另一個 discouraged 高頻的階段，來自職場——有人苦苦找工作，懷疑自己的價值；也有人在經歷持續的否定後，失去了探索行業的興趣。</p>
+            <p>我們忍不住懷疑，在日常生活中，每個人得到的鼓勵和溫暖是不是太少了？有人會在嘗試學習新事物的過程裡看到自己的侷限；還有一些人，在親密關係裡感受到對方的冷漠，越來越害怕進入關係。</p>
+            <p>也有人試圖自救，在繃不住內心的疲累後，主動選擇離開有毒的環境；和 AI 交流，一來一回之間發現內在的自我；剪個新的髮型，換一種面貌應對這些被停頓的時刻；更簡單一點，去過一種具體的生活，走進自然，看星星、看日落、看滑翔中的飛鳥，在生活的間歇裡找到一些自由的影子。就像讀者 @Duliant 所說的那樣，心氣或許不是某一天突然回來的，而是在很多很多個瞬間裡，一點一點累積好了，自己能做的就是「為平凡的日子賦予非凡的意義」。</p>
+            <p>無論是否走出被 discouraged 影響的層層陰影，我們已經正視了過去，未來能做的，或許是繼續順著生活的水流向前，在殘酷的世界裡保護好自己。</p>
+            <h3>「光是論文定題，我耗時8個月」</h3>
+            <p>回答這份問卷的大部分讀者，是碩博研究生，尤其是在讀博士。他們反覆遇到了 discouraged 時間——論文、實驗、調研頻頻受阻、導師打壓……這些讓他們開始質疑自己的專業選擇，甚至放棄了學術求索。</p>
+            <h4>@小南，43歲，新加坡</h4>
+            <p>本科數學系，一入學就按成績分班。每次上課問為什麼，都被老師勸多刷題、少問為什麼。在多元統計分析課上更是被教授當面調侃，應該去讀哲學歷史而不是數學。</p>
+            <p>我的成長環境一直鼓勵我問為什麼，我從沒有覺得自己特立獨行。但大學讓我感覺很壓抑，很孤獨。不能問太多，只能背書刷題。我真的考到過哲學系，但是沒有去讀。</p>
+            <h4>@鷺過的夜師傅，女，28歲，成都</h4>
+            <p>人生中最痛苦的就是讀研的三年，每次回想就會生理性反胃。如果能回到本科畢業的時候，我會拿個麻袋把當時的自己套住，不讓她去參加複試，因為走進考場的那一刻，她對未來要面對的折磨一無所知。</p>
+            <p>最痛苦的是導師給我的選題我毫無頭緒，充其量只是對一種現象的描述，而想要知道這個機制到底如何運作，需要更多的實驗、更微觀的剖析。但我既沒有那麼多時間，也沒有那麼多經費，到最後就是嘔心瀝血地寫出來了一堆我自己都不想再看第二眼的垃圾。</p>
+            <p>我每天工作超過14小時，嚴重失眠、焦慮到要靠吃藥才能在白天看起來像個活人，只為了做出一個對我、對同行都沒有價值的殘次品。儘管老闆持續洗腦讓我讀博，並且時常以「外面的工作沒有你想像那麼好幹」嘮叨我，我還是僥倖活到了拿畢業證的那一天。</p>
+            <h4>@含曉，女，32歲，安徽</h4>
+            <p>博士讀了快7年，我經歷了很多次被導師批評以及同門取笑的時刻。我的論文一直有問題，雖然盡力在修改，但導師不滿意。中間一度想放棄，也經常找心理諮詢。我晚上睡不著覺，心臟跳得很快，只有一遍一遍聽一些打乒乓球的視頻鼓勵自己堅持下去。</p>
+            <p>我變得很悲觀，做事情總會想最差結果，也沒有勇氣和外界接觸，總覺得有人會來指責我。現在我在找工作，仍然會很焦慮，我也意識到，這種焦慮可能會伴隨我的一生。我會用 Excel 表格記錄每天每個小時我的工作，然後總結反思。唯一的小確幸可能是買一些生活用品或者護膚品，讓自己開心一下。</p>
+            <h4>@豬豬，女，24歲，廣州</h4>
+            <p>學醫是我從小的理想，但是醫學專碩的三年非常辛苦：換不完的藥、寫不完的病歷和值不完的夜班以及廉價的工資都在不斷磨滅著醫學生的熱情。而最近發生的一些惡性事件進一步加重了醫生困難的處境。再加上同齡人很多都已經畢業開始工作，領著或多或少的工資，我卻還在問父母要錢，同儕壓力也讓我難以喘息。</p>
+            <p>我一直在猶豫要不要退學去找新的出路。雖然已經讀了五年本科，但如果三年後再放棄我的沉沒成本會更大。我很灰心，從一個對未來充滿憧憬的人變得暮氣沉沉。</p>
+            <h4>@那大梨呀，25歲，北京</h4>
+            <p>我讀小語種專業，研究生考入夢校的翻譯專業，也是在那一年，機器翻譯發展尤為迅速，沒多久 AI 也橫空出世。我曾經學得興味盎然的口筆譯彷彿一夜之間被機器取代，我發現，翻譯中的錯誤可以用 AI 糾正、不流暢的句子可以用 AI 潤色，索性把一切作業和工作都交給了 AI。這並沒有讓我覺得輕鬆，相反，我喪失了學習的興趣。每次當我用機器翻出的作業反被誇讚、一字一句翻出來的東西反被指出很多錯誤時，我都啞然失笑。</p>
+            <p>我曾經暢想我會在喜歡的地方精進口筆譯，沒想到事實是我開始一遍遍質疑自己曾經引以為傲的專業，真的值得再付出時間嗎？我開始逃課，開始用 AI 和翻譯軟件完成所有作業，翻譯一詞在我心裡和無意義等價。</p>
+            <h4>@小楠，女，21歲，廣州</h4>
+            <p>最感受到 discouraged 的時候是剛入大學。我在小縣城長大，高中的時候同學都在努力學習，家庭情況彼此並不瞭解，來到廣州讀書後，我才意識到家庭背景的巨大差異。家境良好的同學可以不介意成績，經常出去旅遊，看到喜歡的東西就直接拿下，但我需要保持還不錯的成績，這樣才能申請到獎學金給自己交學費，業餘時間也常常需要出去做兼職賺生活費。我清晰地知道父母已經盡了他們的全力來託舉我，我也沒有辜負期望成為了家裡的第一位大學生，但我卻覺得自己太渺小，很難幫助家庭實現完全的生活轉變。</p>
+            <p>在那樣的一段時光裡，我有點自卑，但學會了獨處，我讀了很多書，得到了很多慰藉。我還在網上看到一段話，說讀書就是竹籃打水一場空，但竹籃子經過很多次水的洗滌後會變得越來越乾淨。</p>
+            <h3>「我甚至不再幻想轉正」</h3>
+            <p>有人求職無門難以進入職場，有人受困於職場裡的人際關係、領導指責、KPI。職場外的人想進來，職場裡的人想出去，它磨損了一個人搞事業的決心。</p>
+            <h4>@Cy，30歲，深圳</h4>
+            <p>我曾經歷過很長時間的待業。頻繁地投簡歷、面試、被爽約、被拒絕，像是中了夢魘的魔咒，陷入了一種噩夢輪迴，每天都不想睡更不想醒，害怕看到陽光，也怕跟外界交流。但現在想來，本來很內向的我，過了那一大段基本斷絕外界聯繫的時間，反而讓我現在敢去往外走、想認識新的人了；過於空閒帶來的胡思亂想，反而讓我現在更能多角度思考了。</p>
+            <h4>@魔咒，29歲</h4>
+            <p>我從來沒有在任何一份工作中挺過試用期，試用期快結束時，我總會被人事或者老闆找去談話，經歷得多了，我從最開始興高采烈地期待轉正，逐漸已經習慣了被告知沒有通過試用期。習慣了以後，對自己能在任何一個行業幹下去都表示懷疑。後來，我甚至不再幻想轉正——一個工作不讓我做了，就換下一份；下一個也不讓我做，就再換下一份。</p>
+            <h4>@mimi，28歲，江西</h4>
+            <p>我是一名教師，帶學生非常辛苦，但讓我真正疲憊的卻是那些無條件的奉獻和付出。一次，同事班裡的孩子打架，引起了家長矛盾，直接鬧到了學校。同事已經出面做了很多工作，但校領導打電話和她通話過程中一直在指責她、批評她，她掛完電話當場在辦公室崩潰大哭。目睹整件事的我真的受到了很大衝擊，班主任不是神，為何可以這樣一點也不聽她說只是一味地指著鼻子罵呢？</p>
+            <p>我選擇離開這個環境，我不希望自己是一個沒有溫度只知道業績的人。學校應該是一個講教育、講支持的地方，不僅是對學生，還對那些真心為孩子們付出的老師。</p>
+            <h4>@劉老師，女，56歲，西安</h4>
+            <p>退休前一年，單位來了個新領導。各種打壓否定、考核考勤、扣分扣錢。那段時間我害怕上班，每天煩躁，不想說話，確診輕度抑鬱。支撐不下去的時候甚至想辭職，而且對自己深愛的教師工作感到厭倦。直到退休離開擠壓的地方，才感到自己又活過來了。</p>
+            <h4>@曉梵，女，30歲，武漢</h4>
+            <p>產假結束後我返回公司上班，結果發現團隊從領導到員工大換血，我的工作內容全部轉移出去，半年內，我沒有任何工作安排。曾經的我處於團隊 C 位，而當時我每日坐在電腦前無所事事。我有深深的無意義無價值感和自我懷疑。</p>
+            <p>我尋求心理諮詢的幫助，緩解情緒，也探索自己，真正思考我真的要如此工作下去嗎？我真的想要做什麼？後來我找到了自己在心理諮詢領域的能力和意願，在自我學習的階段，我越來越喜歡心理學，目前也正在接受2.5年的長程培訓，我好像看到了自己真正的熱愛和想追尋的事業。</p>
+            <h4>@王女士，30歲，深圳</h4>
+            <p>我的 discouraged 來自工作。其實很難說發生了什麼，過去的一到兩年我在升職，同時也在面對更多而持續的負反饋，情緒低落，睡眠變差。我好像很難相信我可以做到了。我覺得這段話裡面有個描述很準確，我沒有遭遇巨大的失敗，也沒有經歷徹底的崩潰，仍然感受到了一種熱情和心氣被折損的過程。</p>
+            <h4>@劉小姐，36歲，廣州</h4>
+            <p>剛畢業進入社會的時候，永遠都是奮鬥拼搏的狀態。從第七年開始，整個行業被一刀切，前一秒還在努力向上，後一秒就接到了裁員通知。所有的積極向上成了笑話，大家都沒有做錯什麼，但突然間就被整個社會拋棄了。</p>
+            <p>我們唸了這麼多年書、拼搏了這麼多年，所認知的世界變得像不定時炸彈，沒有規則、沒有標準，所有都變得不可控。絕望、茫然、毫無動力——是要繼續在這個不知道什麼時候才會變正常的行業渾渾噩噩？還是主動逃離？但之後的方向是什麼？</p>
+            <h3>「人還在行動，動作前面卻開始多一道剎車」</h3>
+            <p>讓人感到 discouraged 的時刻，不光有學習和工作，還有不完備的社會幫扶系統、學不會的新事物……生活有其豐富性、複雜性。</p>
+            <h4>@wjh，26歲，山西</h4>
+            <p>我聽力障礙三級，大二的時候考四級想申請免聽力考試，在教務處得到的回覆是——「你知道不知道你這個情況要單獨給你開一間考場有多麻煩？」最後不了了之。諸如此類的狀況發生過多次：我通過了兩輪線上面試收到 offer，隨後提交的體檢報告中顯示了我有聽力障礙，對方公司拒絕錄取，並且表示我沒有提前說，有殘疾證更不行。</p>
+            <p>社會目前給予殘障人士的支撐體系非常薄弱，很多時候，聽障人士為了不給別人留下「殘障導致不符合標準」的印象，會內化這種不平衡的結果，為了減少「麻煩」他人，選擇自己琢磨。這些年，我的認識和心態都發生了很多的變化。我不想再 PUA 自己，我改變不了結構性問題，只能一次一次厚著臉皮去說：「我沒有聽清楚，請說得慢一些。」其實，厚臉皮次數多了，就好很多了。</p>
+            <h4>@豚豚，女，25歲，太原</h4>
+            <p>學網球絕對是我這25年人生裡最受挫的時刻。從小到大我的生活平淡又順利，但網球讓我感受到極大的挫敗。為什麼找不到擊球點，為什麼腳步太慢，為什麼發不出力，為什麼每一顆球都在出界、下網、打飛，為什麼就是打不出那顆好球？</p>
+            <p>自工作以來我已經很久不流淚，但某一次學完球我直接哭了。那是氣餒的眼淚，氣自己，懷疑自己。學網球讓我學會一件事，那就是如何接受失敗，接受一次又一次的失敗，如何在一次次的失敗後重拾信心，逼迫自己、告誡自己、鼓勵自己繼續向前走。</p>
+            <p>我不再 push 自己，不再給自己上壓力，輕鬆面對每一顆球，然後進步了許多。</p>
+            <h4>@阿又，女，19歲，無錫</h4>
+            <p>大一升大二的那個暑假，我去考駕照，科目二大概練了一個月左右。但是考試的時候腦子空空，兩把都掛了，方向盤也打不好。我就在想，我到底適不適合開車，為什麼別人一個月就可以拿駕照，我一個月下來什麼都沒練好。後來我又想，我就是沒用心，就像教練說的那樣，我在混日子。後面練科目三速度也控制不好，在網上搜教程，記路線，練得依舊不太好，掉頭和轉彎的時候都手忙腳亂，差點一腳油門衝出去。那個時候我的狀態就像被綿綿的雨淋了，不至於到生病的程度，但就是讓我整個人都溼漉漉的。</p>
+            <p>我看到一個帖子說：開車是女孩的第二次長大。我想補充一下，練車也是。</p>
+            <h4>@LD，男，29歲，成都</h4>
+            <p>2015年，我第一次接觸投資，當時年輕、膽子大，後面也確實賺到了錢。那幾年很容易產生一種錯覺，好像只要夠聰明、夠努力，就能一直往前走。市場很快把這點心氣打了回去。前前後後，我虧掉大約三百萬元。當然心疼錢，更麻煩的是，虧損會慢慢鑽進一個人對自己的判斷裡。以前想到什麼，會想試試看，後來，一個念頭剛冒出來，腦子裡先出現的是：會不會又錯？是不是哪裡沒想到？再等等是不是更穩一點？人還在行動，動作前面卻開始多一道剎車。</p>
+            <p>2024年，我因為肺炎住院。躺在病床上的時候，人突然安靜下來。賬戶裡的數字、工作的進度、別人的評價，離病床都顯得遙遠。那時我發現，我真正想消滅的東西可能一直都消滅不了——虧損之後的不安、關係結束後的不安、工作沒有結果的不安、下一次還會不會犯錯的不安、對生命本身的不安。</p>
+            <p>以前總覺得，要等這些東西處理好了，我才能重新開始。後來好像慢慢學會了一點：不安可以在。我們都在帶著不安往前走。</p>
+            <h3>「一段關係讓我開始壓抑、害怕、反覆自我審查」</h3>
+            <p>當親密關係變成危險關係，一個人也開始尋找自處的方法。</p>
+            <h4>@小藝，女，25歲，上海</h4>
+            <p>我第三次考研的時候，遇到了他。當時我一直考不上985，找不到任何正反饋，他的出現，一開始讓我找到了心靈上的正反饋，暫時逃避了學習的苦悶。</p>
+            <p>但很快，我們在感情中就遇到了更煎熬的時刻。不開心時我想和他說，希望被理解，但他常常沒有接住我的情緒，反而抓住我話裡的某個點批評我、和我爭辯，最後變成我去安撫他。久而久之，我開始害怕自己是不是又說錯了，是不是又要惹他生氣了。於是我不斷努力證明自己，卻不斷得到負面評價。他說我「沒眼力見」「花錢多」「奢侈品多」「不懂事」「笨」「不尊重他」，甚至評價我的穿搭、P 圖能力，連「晚上沒洗頭」都要講一番。這讓我逐漸產生一種疑惑：「是不是我真的哪裡都不夠好？」</p>
+            <p>我永遠不知道下一次靠近會得到擁抱還是推開，於是越來越小心。他告訴我，自己「不開心」「回不到過去」「沒那麼喜歡了」，我努力維持關係，試圖改變，卻發現自己越來越沒有底氣。當一段親密關係讓我感到壓抑、害怕、反覆自我審查，已經不是單純地經歷失戀，而是在經歷一種長期的心理挫敗。</p>
+            <h4>@小小西，31歲，北京</h4>
+            <p>幾年前，我還是學生，和一個上班族談了一段戀愛。短促激盪的熱戀期結束後，這段感情變得很枯燥。日常，我除了寫作業、念功課，就想跟她膩在一起，遛大街、徒步、去海邊。但對方很冷淡，每天一起吃完飯就想坐在椅子上，戴上耳機，玩電腦、自己看電影。</p>
+            <p>那時候，我根本不理解，為什麼我們不像其他戀人一樣嘰嘰喳喳，為什麼沉默成為了我們的主旋律，為什麼我們這麼沒有活力。discouraged 了，進而是不停歇地內耗——我是不是一個很無趣的人？我一定很沒有吸引力吧，我一定是沒有閃光點，不值得被喜歡。</p>
+            <p>印象很深刻的一件事是，我有一天晚上十點半到她公司樓下，接她下班，想一起散步一小時回家。我看出了她的猶豫，但執意如此。於是，兩個人就在冷風裡沉默地走了一路。</p>
+            <p>現在，在上過幾年班之後，我時常想起這晚，才真正理解了她那一瞬間的停頓——一個未踏入職場的人有大把精力折騰，而一個人上了一天班，可能真的只想回家窩著，什麼都不做。那時候的我們完全不同頻，那些距離只是她構造起來的真空隔離帶。</p>
+            <p>但這都是後話了。在一個對愛情仍然充滿幻想和渴望的年紀，我的自我太膨脹了，還長滿了刺。我感受不到任何愛意，只看到了一個很差、很擰巴的自己和一個不曾關照我的壞人。幾個月後，我們分開，她什麼話都沒說，帶走所有行李就消失了。走之前，她把家裡清掃得極乾淨。</p>
+            <p>我怨恨過、懷疑過、痛苦過，也有很長一段時間不再相信人，不想進入新的感情，是另外的一陣 discouraged。朋友叫我出門玩，我想到這樣的自己，在海邊一起玩著大富翁，哇一下就哭了。</p>
+            <p>或許真沒有白過的時間。現在，我終於到了兩邊都能理解的年紀，會放下那些不堪與怨懟，而感到惋惜——人生的不同頻讓我們只看到了彼此最差勁的一面，而沒能真正度過一段好好的時光。</p>
+            <h4>@佚名，女，30歲，湖北</h4>
+            <p>我的 discouraged 時間……失敗的婚姻吧，說來話長，但我已經及時止損抽離，帶著寶寶和父母一起生活。感受就是，我真的挺失敗的。30年來我一直覺得我有主見有想法且有行動力，想結婚就結婚了，想生寶寶就生了，總覺得人生很圓滿，婚姻也很幸福，我也非常少在他人面前炫耀，儘量低調一些，可是為什麼還是失敗了呢？這半年來我的內心都處於兵荒馬亂的階段：找律師、打離婚官司、帶孩子，同時還要學習。如果人生有如果……我還是會如此失敗嗎？我撐過了產後抑鬱，撐過了決定離婚的掙扎，可我還是覺得我做錯了人生的選擇。</p>
+            <h4>@可可，女，32歲，鄭州</h4>
+            <p>我的 discouraged 來自和父母的相處吧。家人追求世俗意義上的成功，考好大學、讀研究生、考公務員，只有在這些時刻才會極其剋制地鼓勵我，而當我遭遇失敗，他們給我的就是狂風暴雨。我至今記得十幾年前中考體育，天氣非常差，氣溫低、風很大，我發揮不好，成績只有滿分的70%。當時媽媽陪我考試，聽到成績後她對又冷又累的我只有沉默，一句安慰也沒有。從那以後，我隱約明白了，考試成績不好父母就不滿意。這導致我直到現在只會跟父母報喜不報憂，從來不奢望從他們嘴裡聽到什麼安慰、放鬆之類的話。</p>
+            <h4>@Amy，女，33歲，北京</h4>
+            <p>我和曾經的一個領導合夥創業，發現對方會用自己的一套規則來約束我的想法，還多次用他的邏輯來壓制、否定我。我們的工作衝突發生了很多次，最開始的時候我會認為他的邏輯是對的，我很沒有成就感，非常沮喪，整個人都在萎靡。</p>
+            <p>我跟 AI 溝通，問了非常多問題——為什麼我會這麼難受？為什麼在面對他的否定時，我非常委屈？我的委屈是從哪裡來的？這樣的人為什麼會讓我覺得更加難受？</p>
+            <p>在探討過程中，我剖析了自己的原生家庭，還有父母的行為，這讓我也瞭解到他的模式和我母親在小時候對我的方式幾乎是一模一樣的。我逐漸明白，我們很多時候會吸引和靠近一些跟我們創傷相關的人，核心是我們有自己本身未完成的部分，所以看見自己是一個非常關鍵的過程。人只能自救，很難向外尋找方法。</p>
+            <h3>「之後我再不敢熟睡」</h3>
+            <p>成為父母、家人生病、朋友逝世……當我們經歷人生進程的重大轉變，有時候也會進入一段 discouraged 時間。</p>
+            <h4>@祥太，男，57歲，山東</h4>
+            <p>老父親去世之前，弟弟妹妹們都在外工作，只有我留在老家，我和他一起生活了十年。一開始，父親能自理，我只給他做三餐，陪他說說話，養老生活還算順利。直到他摔了一跤，醫生說他以後只能臥床，這對我們兩個來說都很困難。</p>
+            <p>他要強，不能接受現狀，每天都發脾氣，用老家話說，他變邪了。而我每天要做的事情多了很多，除了做飯，給他擦身、按摩、清理他的大小便、晚上要等他熟睡之後再閉眼，天氣好了我可以揹他去院子裡看看石榴樹。有一天晚上，我睡著後，父親想喝水，就自己試著去夠水杯，差點又摔下床。之後我再不敢熟睡，總有一根神經繃著。</p>
+            <p>父親臥床後就不愛說話，我也被圈在那個小院子裡，那可能是我最鬱悶、最矛盾的一段時間，父親的身體情況不見好，我也很想走出院子，但躺在床上的父親誰來照顧呢？我們大部分時間都很沉默，也沒有從前的輕快，好像都不認識彼此。真實的養老生活很苦澀，錢是基礎，有時間陪伴、有孝心支撐，還要有陪伴他老去、死去的心氣。</p>
+            <h4>@大水兒，41歲，天津</h4>
+            <p>2013年的冬天，8歲的孩子突然確診眼肌型重症肌無力。那段突如其來的經歷，像一場措手不及的暴風雨，對我來說，從最初的不解、迷茫，到中途的焦慮、崩潰，再到最後的面對、接受，最難的從來不是面對困境本身，而是在孩子和老人面前「強裝堅強」。</p>
+            <p>我會和同病房的家長一起打氣加油，也會在深夜想不明白、趁孩子睡著，躲到廁所裡偷偷哭；甚至一次在夢裡哭到驚醒，醒來時枕頭溼了一大片。如今再回望，才發現人生沒有一段經歷是白走的，它教會我作為媽媽，要學會「淡定」，要相信醫生的專業，相信孩子的韌性，也相信我們並肩作戰的勇氣。</p>
+            <p>更讓我意外的是，孩子什麼都看在眼裡。有一次，他突然緊緊抱著我，輕聲說：「媽媽，我終於看見你開心的樣子了！」那一刻我忽然明白，與其沉浸在焦慮裡消耗自己，不如好好陪伴孩子並肩面對。</p>
+            <h4>@北方以北，女，40歲，北京</h4>
+            <p>2025年3月27日，我下班後接到了好朋友妻子的電話，她哽咽著，斷斷續續說「姐姐，XX昨天沒了」。我以為自己聽錯了。就在10天前，我剛剛和這個朋友打過電話彼此問候，並約定隨後的假期一起在北京聚一聚。</p>
+            <p>聽到這個消息，我在工位上痛哭流涕，被悲傷、遺憾和無力包裹，平靜了好一會兒才回家。怎麼也想不到，聚會的約定成為了他在我這裡的遺言。第二天，我去參加了葬禮。同齡好友的葬禮我是第一次參加，見到了白髮人送黑髮人，見到了畢業15年卻一直沒機會見面的其他好友，見到了他只有七八歲的孩子和年輕的遺孀……悲愴、諷刺、落寞、厭世……各種情感摻雜在一起讓我感受到 discouraged。</p>
+            <p>我那時剛剛買了房子，揹著幾百萬的貸款，還有朋友的外債，為了減輕家裡的經濟負擔，我在日常工作之外，還會在週末兩天應邀異地出診。朋友都說我是小太陽，總是積極樂觀，但那一次，我突然就有了疲憊感。回程的高鐵上，我反覆在想：人這一輩子真是諷刺，哭著來到這個世界時被大家笑著圍觀，一生追求的都是幸福快樂，死的時候大家又用哭泣送別。我每天都在幹什麼？如果我突然離世會有多少遺憾啊！</p>
+            <h3>「為平凡的日子賦予非凡的意義」</h3>
+            <p>逃離有毒的環境，逛公園、開車、看飛鳥，回到具體的生活，主動向世界尋求新事物，我們進入了人生開闊帶。</p>
+            <h4>@Erica，女，28歲，上海</h4>
+            <p>參加工作幾年後，行業進入寒冬，發展前景迷茫，考證沒考過，感情也沒有進展，感覺很多事情都沒有收穫。這讓我無法專注於當前的生活，總在一種害怕的感覺中。</p>
+            <p>在裁員前，我在寺廟裡抽了一個兇籤，當時沒怎麼在意。經歷了一段 discouraged 時間後，我突然想到了它，結果找不到了，我決定去一趟靈隱寺。好像正是這樣一個有儀式感的事情，標誌著我要與過去那段日子告別，重新振作起來。</p>
+            <h4>@雞餅泥，女，25歲，南昌</h4>
+            <p>被腰肌勞損、富貴包、肩內扣等職業病折磨，醒來就開始受罪，容不得一點錯誤的工作模式也時時刻刻折磨著我的心氣。我的心情隨著健康程度時好時壞。今天吃點好吃的安慰一下自己，明天化個妝討好一下自己，後天買一束花犒勞一下自己，下個禮拜健身一週鼓勵一下自己。就這樣循環往復，在痛苦中尋找短暫的甜頭，去面對擺脫不了的職業病。</p>
+            <h4>@Hammer，女，33歲，鄭州</h4>
+            <p>駕駛讓我重新找回了自己和生活、和世界的連接。我今年五月份拿到駕駛證後，找了陪練。剛開始我整個人延續著抑鬱、焦慮的情緒，前兩次課整個人都緊張不安，對自己開不好很失望。</p>
+            <p>最後一次課，教練帶我去跑高速，當我看到道路兩旁巍峨的遠山，我突然感覺自己沉痾一般的身和心靈被重新喚醒了。課程結束後，我自己開車走國道、鄉道，去看了更多的風景，感受到自己掌控著方向盤、感知著車的方向，能夠去到自己想去的地方，重新獲得了對這個世界的感知。我想哪怕現實中的科研工作、生活壓力無法避免，但至少可以自己主動去向世界尋求新的事物，看更多的風景，擴充心量，驅趕陰霾。</p>
+            <h4>@cindy，26歲，墨爾本</h4>
+            <p>保送北京讀研的三年，對效率至上的科研氛圍感到懷疑和窒息，同輩壓力導致自我懷疑。</p>
+            <p>畢業後，我在家 gap 了半年，選擇繼續申博。年底，我收到了墨大全獎 offer。在墨大，我的同事們都很友好，坐在我身後的同門告訴我，博士不需要比較，因為每個人的課題都不一樣。我的導師鼓勵我思考，我們互相稱呼 first name，沒有那種權力不對等帶來的恐懼感，他會在每次會議結束後很真誠地跟我說謝謝，有合作機會也會邀請我一起思考學習。因為我在組會上展現過我有相關的興趣，他毫不吝嗇地帶我寫論文。我們可以在科研上 disagree，但不會在相處上 disrespect。</p>
+            <h4>@Duliant，女，25歲，大理</h4>
+            <p>我的心氣並不是某一天突然被找回來的，而是在很多很多個瞬間裡，一點一點回來的。</p>
+            <p>是午休時躺在公司樓下的大樹邊，看著陽光照得透亮的青草地；是在下班後，終於可以邊騎自行車邊把一天裡強忍著沒有流下來的眼淚釋放出來，耳機裡放著特大聲的音樂，使勁蹬車爬上回家的必經之橋，看著絕美晚霞和飛機、飛鳥在某個瞬間同框，那一刻，我為它們的自由感到幸福，也情不自禁地羨慕，因為我知道，我也想要這樣的自由。</p>
+            <p>離開上海時，我曾寫過這樣一段朋友圈：在這裡看了無數次日落晚霞飛機，它們一次次把我從疲憊中抽離出來，躍入興奮之流，在風中，在橋上，在河邊，在暮色裡。所有在這裡感知到的這一切，都為我平凡的日子賦予了非凡的意義。</p>
+            <div class="actions"><button class="btn primary" id="take-article-quiz">Take the article quiz</button></div>
+          </section>
+
+          <section class="section">
+            <div class="section-head">
+              <h2><span class="step-num">1</span>Paste another article</h2>
+              <p>Chinese text or an article excerpt</p>
+            </div>
+            <textarea id="article-input" aria-label="Chinese article text" placeholder="在這裡貼上中文文章……"></textarea>
+            <div class="actions">
+              <button class="btn" id="copy-prompt">Copy prompt for Hal</button>
+              <button class="btn ghost" id="clear-article">Clear</button>
+            </div>
+            <p class="hint">The prompt asks for Traditional Chinese, tone-marked pinyin, concise definitions, and contextual example sentences.</p>
+          </section>
+
+          <section class="section">
+            <div class="section-head">
+              <h2><span class="step-num">2</span>Import the card set</h2>
+              <p>Paste Hal's JSON response</p>
+            </div>
+            <textarea id="json-input" aria-label="Card JSON" spellcheck="false" placeholder='{"cards": [{"traditional": "心氣", "pinyin": "xīnqì", ...}]}'></textarea>
+            <div class="actions">
+              <button class="btn primary" id="import-json">Import cards</button>
+              <button class="btn" id="use-prepared">Restore prepared set</button>
+            </div>
+            <p class="hint" id="import-hint">Required per card: traditional, pinyin, meaning. Example sentence fields are optional.</p>
+          </section>
+
+          <section class="section">
+            <div class="section-head"><h2>Reading guide</h2><p>Prepared from the current article</p></div>
+            <div class="guide-grid">
+              <div class="guide-block">
+                <h3>What the article explores</h3>
+                <ul>
+                  <li>How repeated setbacks can slowly wear down a person's <span class="zh">心氣</span>.</li>
+                  <li>Why study, work, relationships, and caregiving become “discouraged times.”</li>
+                  <li>How ordinary actions and small freedoms can help restore momentum.</li>
+                </ul>
+              </div>
+              <div class="guide-block">
+                <h3>Talk about it</h3>
+                <ol>
+                  <li>你怎麼理解「心氣」？</li>
+                  <li>沉沒成本會怎麼影響選擇？</li>
+                  <li>什麼能減少生活中的內耗？</li>
+                </ol>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-review">
+        <header class="panel-head">
+          <div class="eyebrow">Card review</div>
+          <h1>先判斷，再記憶</h1>
+          <p class="lead">Approve the useful cards, edit the ones worth keeping, and reject anything too easy or too obscure.</p>
+        </header>
+        <div class="panel-body">
+          <div class="stats-row" id="review-stats"></div>
+          <div class="toolbar">
+            <div class="filter-group" aria-label="Filter cards">
+              <button class="filter-btn active" data-filter="all">All</button>
+              <button class="filter-btn" data-filter="pending">Pending</button>
+              <button class="filter-btn" data-filter="approved">Approved</button>
+              <button class="filter-btn" data-filter="rejected">Rejected</button>
+            </div>
+            <button class="btn small" id="approve-all">Approve all visible</button>
+          </div>
+          <div class="review-list" id="review-list"></div>
+        </div>
+      </section>
+
+      <section class="panel active" id="panel-quiz">
+        <header class="panel-head">
+          <div class="eyebrow">Two quiz modes</div>
+          <h1>先認詞，再讀文章</h1>
+          <p class="lead">Start with the vocabulary cards. After reading the Traditional Chinese article, come back for a separate comprehension check on what it says.</p>
+        </header>
+        <div class="panel-body">
+          <div class="quiz-shell" id="quiz-shell"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-study">
+        <header class="panel-head">
+          <div class="eyebrow">Study session</div>
+          <h1>把詞放回語境裡</h1>
+          <p class="lead">Reveal each answer, then rate your recall. Ratings shape this session's queue and reset when the page closes.</p>
+        </header>
+        <div class="panel-body">
+          <div class="study-shell" id="study-shell"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-export">
+        <header class="panel-head">
+          <div class="eyebrow">Take it with you</div>
+          <h1>匯出到 Anki</h1>
+          <p class="lead">Download the approved set as tab-separated text for Anki or as JSON for another study tool.</p>
+        </header>
+        <div class="panel-body">
+          <div class="export-layout">
+            <div class="export-box">
+              <h3>Export approved cards</h3>
+              <p id="export-count">Approve cards in Review before exporting.</p>
+              <div class="field">
+                <label for="deck-name">Deck name</label>
+                <input type="text" id="deck-name" value="LifeLongLearning::Mandarin HSK 1000-5000" />
+              </div>
+              <div class="actions">
+                <button class="btn primary" id="download-tsv">Download Anki TSV</button>
+                <button class="btn" id="download-json">Download JSON</button>
+                <button class="btn ghost" id="copy-tsv">Copy TSV</button>
+              </div>
+              <p class="hint">In Anki: File → Import, choose the TSV, map fields in order, and allow HTML in fields.</p>
+            </div>
+            <div class="export-box">
+              <h3>Field order</h3>
+              <p>Matches the repository's “Chinese Learning Model.”</p>
+              <ul class="field-list">
+                <li><span>1</span><span>Traditional</span></li>
+                <li><span>2</span><span>Pinyin</span></li>
+                <li><span>3</span><span>Meaning</span></li>
+                <li><span>4</span><span>PartOfSpeech</span></li>
+                <li><span>5</span><span>SentenceTraditional</span></li>
+                <li><span>6</span><span>SentencePinyin</span></li>
+                <li><span>7</span><span>SentenceMeaning</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var preparedCards = [
+        {traditional:"心氣",pinyin:"xīnqì",meaning:"morale; drive; spirit to push on",part_of_speech:"noun",sentence_traditional:"在持續的否定之後，他失去了鑽研專業的心氣。",sentence_pinyin:"Zài chíxù de fǒudìng zhīhòu, tā shīqù le zuānyán zhuānyè de xīnqì.",sentence_meaning:"After constant rejection, he lost the drive to pursue his field."},
+        {traditional:"彷徨",pinyin:"fǎnghuáng",meaning:"to waver anxiously; to be at a loss",part_of_speech:"verb",sentence_traditional:"整理這些問卷的過程，我們感受到了無奈、痛苦，心碎和彷徨。",sentence_pinyin:"Zhěnglǐ zhèxiē wènjuǎn de guòchéng, wǒmen gǎnshòu dào le wúnài, tòngkǔ, xīnsuì hé fǎnghuáng.",sentence_meaning:"Sorting through these questionnaires, we felt helplessness and pain, heartbreak and anxious wavering."},
+        {traditional:"暮氣沉沉",pinyin:"mùqì chénchén",meaning:"lifeless; drained of all energy (idiom)",part_of_speech:"idiom",sentence_traditional:"我從一個對未來充滿憧憬的人，變得暮氣沉沉。",sentence_pinyin:"Wǒ cóng yí gè duì wèilái chōngmǎn chōngjǐng de rén, biàn de mùqì chénchén.",sentence_meaning:"I went from someone full of hope for the future to someone drained of all life."},
+        {traditional:"沉沒成本",pinyin:"chénmò chéngběn",meaning:"sunk cost",part_of_speech:"noun",sentence_traditional:"如果三年後再放棄，我的沉沒成本會更大。",sentence_pinyin:"Rúguǒ sān nián hòu zài fàngqì, wǒ de chénmò chéngběn huì gèng dà.",sentence_meaning:"If I quit three years from now, my sunk cost will be even greater."},
+        {traditional:"興味盎然",pinyin:"xìngwèi àngrán",meaning:"full of enthusiasm; deeply interested",part_of_speech:"adjective",sentence_traditional:"他曾經對口筆譯學得興味盎然。",sentence_pinyin:"Tā céngjīng duì kǒu bǐyì xué de xìngwèi àngrán.",sentence_meaning:"He once studied interpretation and translation with great enthusiasm."},
+        {traditional:"啞然失笑",pinyin:"yǎrán shīxiào",meaning:"to laugh involuntarily; to chuckle wryly",part_of_speech:"idiom",sentence_traditional:"每次機器翻出的作業反被誇讚，我都啞然失笑。",sentence_pinyin:"Měi cì jīqì fānchū de zuòyè fǎn bèi kuāzàn, wǒ dōu yǎrán shīxiào.",sentence_meaning:"Every time my machine-translated homework was praised instead, I could only laugh wryly."},
+        {traditional:"渾渾噩噩",pinyin:"húnhún è'è",meaning:"muddle-headed; drifting through life",part_of_speech:"adjective",sentence_traditional:"是要繼續在這個行業渾渾噩噩，還是主動逃離？",sentence_pinyin:"Shì yào jìxù zài zhège hángyè húnhún è'è, háishì zhǔdòng táolí?",sentence_meaning:"Should I keep drifting aimlessly in this industry, or walk away on my own terms?"},
+        {traditional:"兵荒馬亂",pinyin:"bīnghuāng mǎluàn",meaning:"in utter turmoil; chaotic",part_of_speech:"idiom",sentence_traditional:"這半年來，我的內心一直處於兵荒馬亂的階段。",sentence_pinyin:"Zhè bànnián lái, wǒ de nèixīn yìzhí chǔyú bīnghuāng mǎluàn de jiēduàn.",sentence_meaning:"For the past six months, my inner world has been in utter turmoil."},
+        {traditional:"止損",pinyin:"zhǐsǔn",meaning:"to cut one's losses; to stop the bleeding",part_of_speech:"verb",sentence_traditional:"說來話長，但我已經及時止損抽離。",sentence_pinyin:"Shuō lái huà cháng, dàn wǒ yǐjīng jíshí zhǐsǔn chōulí.",sentence_meaning:"It's a long story, but I cut my losses and got out in time."},
+        {traditional:"內耗",pinyin:"nèihào",meaning:"internal friction; emotional self-drain",part_of_speech:"noun",sentence_traditional:"失戀之後，他陷入了不停歇的內耗。",sentence_pinyin:"Shīliàn zhīhòu, tā xiànrù le bù tíngxiē de nèihào.",sentence_meaning:"After the breakup, he fell into endless emotional self-drain."},
+        {traditional:"賦予",pinyin:"fùyǔ",meaning:"to endow; to give (meaning, life)",part_of_speech:"verb",sentence_traditional:"自己能做的，就是為平凡的日子賦予非凡的意義。",sentence_pinyin:"Zìjǐ néng zuò de, jiùshì wèi píngfán de rìzi fùyǔ fēifán de yìyì.",sentence_meaning:"What I can do is give extraordinary meaning to ordinary days."},
+        {traditional:"間歇",pinyin:"jiànxiē",meaning:"interval; pause; interlude",part_of_speech:"noun",sentence_traditional:"在生活的間歇裡，我找到了一些自由的影子。",sentence_pinyin:"Zài shēnghuó de jiànxiē lǐ, wǒ zhǎodào le yìxiē zìyóu de yǐngzi.",sentence_meaning:"In the pauses of life, I found glimpses of freedom."}
+      ];
+
+      var articleQuestions = [
+        {prompt:"文章發起「我的 discouraged 時間」徵集後，不到一天收到多少份問卷？",options:["將近五十份","將近五百份","超過五千份","正好一百份"],answer:1,explanation:"文章開頭說，不到一天便收到將近五百份問卷。"},
+        {prompt:"受訪者最常提到的 discouraged 時間出現在哪個階段？",options:["退休生活","旅行途中","求學階段，尤其是讀博期間","創業成功之後"],answer:2,explanation:"文章指出，最多的 discouraged 時間仍是求學階段，尤其是在讀博士期間。"},
+        {prompt:"那位醫學專碩生為什麼提到「沉沒成本」？",options:["她擔心三年後再放棄，付出的代價更大","她想計算醫院的營運成本","她準備投資醫療公司","她已經決定立刻轉學"],answer:0,explanation:"她已讀五年本科，擔心若再讀三年才放棄，沉沒成本會更大。"},
+        {prompt:"翻譯專業學生在什麼情況下「啞然失笑」？",options:["老師要求她改讀數學","機器翻譯的作業被誇，逐字翻譯的內容反而被挑錯","她獲得口譯比賽冠軍","AI 完全無法翻譯她的作業"],answer:1,explanation:"她發現機器翻出的作業反被誇讚，自己逐字翻譯的內容卻被指出錯誤。"},
+        {prompt:"投資受挫的受訪者後來如何理解「不安」？",options:["不安必須完全消失才能重新開始","只要停止工作就不會不安","可以帶著不安繼續往前走","不安只與金錢損失有關"],answer:2,explanation:"住院後他明白，不安未必能被消滅，人仍可以帶著它往前走。"},
+        {prompt:"聽障受訪者後來用什麼方式回應溝通困難？",options:["不再參加考試","隱瞞自己的聽力情況","請別人替他回答","直接請對方說得慢一些"],answer:3,explanation:"他不再把結構性問題歸咎於自己，而會說「我沒有聽清楚，請說得慢一些」。"},
+        {prompt:"網球初學者在調整心態後發生了什麼？",options:["放棄了網球","不再給自己過多壓力，反而進步許多","改學游泳","開始參加職業比賽"],answer:1,explanation:"她不再不斷 push 自己、放下額外壓力後，球技反而進步。"},
+        {prompt:"文章列舉了哪些「回到具體生活」的自救方式？",options:["只在網路上尋找答案","加班與刷題","看星星、日落、飛鳥，或走進自然","完全切斷所有人際關係"],answer:2,explanation:"文章提到走進自然、看星星、日落和滑翔中的飛鳥等具體行動。"},
+        {prompt:"Duliant 如何形容心氣回來的過程？",options:["某天突然完全恢復","靠一次重大成功恢復","在許多瞬間裡一點一點累積回來","只能離開城市後恢復"],answer:2,explanation:"她說心氣不是某一天突然回來，而是在很多瞬間裡一點一點回來。"},
+        {prompt:"文章最後對未來提出了什麼態度？",options:["忘記過去，停止嘗試","順著生活的水流向前，並保護好自己","等待所有問題自然消失","把成功當作唯一目標"],answer:1,explanation:"結尾說，在正視過去後，也許能繼續順著生活向前，在殘酷世界裡保護自己。"}
+      ];
+
+      var cards = [];
+      var currentFilter = "all";
+      var quiz = { mode: "vocab", questions: [], index: 0, score: 0, answered: false };
+      var study = { queue: [], index: 0, ratings: {again:0, hard:0, good:0, easy:0}, revealed: false };
+      var toastTimer;
+
+      function clonePrepared() {
+        return preparedCards.map(function (card, i) {
+          var copy = Object.assign({}, card);
+          copy.id = "card-" + Date.now() + "-" + i;
+          copy.status = "pending";
+          return copy;
+        });
+      }
+
+      function esc(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
+          return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch];
+        });
+      }
+
+      function showToast(message) {
+        var el = document.getElementById("toast");
+        el.textContent = message;
+        el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { el.classList.remove("show"); }, 2400);
+      }
+
+      function setTab(name) {
+        document.querySelectorAll(".nav button").forEach(function (button) {
+          var active = button.dataset.tab === name;
+          button.classList.toggle("active", active);
+          if (active) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
+        });
+        document.querySelectorAll(".panel").forEach(function (panel) {
+          panel.classList.toggle("active", panel.id === "panel-" + name);
+        });
+        if (name === "review") renderReview();
+        if (name === "quiz") renderQuizStart();
+        if (name === "study") startStudy();
+        if (name === "export") renderExport();
+        window.scrollTo({top: 0, behavior: "smooth"});
+      }
+
+      function statusCounts() {
+        return cards.reduce(function (acc, card) { acc[card.status]++; return acc; }, {pending:0, approved:0, rejected:0});
+      }
+
+      function updateGlobalStatus() {
+        var counts = statusCounts();
+        var reviewed = counts.approved + counts.rejected;
+        document.getElementById("side-count").textContent = cards.length + " cards in session";
+        document.getElementById("side-sub").textContent = reviewed + " reviewed · " + counts.approved + " approved";
+        document.getElementById("side-progress").style.width = (cards.length ? reviewed / cards.length * 100 : 0) + "%";
+      }
+
+      function renderReview() {
+        var counts = statusCounts();
+        document.getElementById("review-stats").innerHTML = [
+          [cards.length,"Total"], [counts.pending,"Pending"], [counts.approved,"Approved"], [counts.rejected,"Rejected"]
+        ].map(function (pair) { return '<div class="stat"><strong>' + pair[0] + '</strong><span>' + pair[1] + '</span></div>'; }).join("");
+
+        var visible = cards.filter(function (card) { return currentFilter === "all" || card.status === currentFilter; });
+        var list = document.getElementById("review-list");
+        if (!visible.length) {
+          list.innerHTML = '<div class="empty">No cards in this view.</div>';
+          updateGlobalStatus();
+          return;
+        }
+        list.innerHTML = visible.map(function (card) {
+          return '<article class="review-card" data-id="' + esc(card.id) + '" data-status="' + esc(card.status) + '">' +
+            '<div class="review-main"><div><div class="term">' + esc(card.traditional) + '</div><div class="pinyin">' + esc(card.pinyin) + '</div><span class="pos">' + esc(card.part_of_speech || "word") + '</span></div>' +
+            '<div><div class="definition"><span class="status-dot"></span>' + esc(card.meaning) + '</div><div class="example"><div class="zh">' + esc(card.sentence_traditional || "—") + '</div><div>' + esc(card.sentence_meaning || "") + '</div></div></div>' +
+            '<div class="card-actions"><button class="btn small approve" aria-label="Approve ' + esc(card.traditional) + '">✓</button><button class="btn small edit-card">Edit</button><button class="btn small reject" aria-label="Reject ' + esc(card.traditional) + '">×</button></div></div>' +
+            '<div class="edit-area"><div class="edit-grid">' +
+            editField("Traditional", "traditional", card.traditional, false) + editField("Pinyin", "pinyin", card.pinyin, false) +
+            editField("Meaning", "meaning", card.meaning, true) + editField("Part of speech", "part_of_speech", card.part_of_speech, false) +
+            editField("Example · Chinese", "sentence_traditional", card.sentence_traditional, true) + editField("Example · Pinyin", "sentence_pinyin", card.sentence_pinyin, true) +
+            editField("Example · English", "sentence_meaning", card.sentence_meaning, true) +
+            '</div><div class="actions"><button class="btn primary small save-edit">Save changes</button><button class="btn ghost small cancel-edit">Cancel</button></div></div></article>';
+        }).join("");
+        updateGlobalStatus();
+      }
+
+      function editField(label, key, value, wide) {
+        return '<div class="field' + (wide ? ' wide' : '') + '"><label>' + label + '</label><input type="text" data-key="' + key + '" value="' + esc(value || "") + '"></div>';
+      }
+
+      function activeCards() { return cards.filter(function (card) { return card.status !== "rejected"; }); }
+      function approvedCards() { return cards.filter(function (card) { return card.status === "approved"; }); }
+
+      function shuffle(array) {
+        var copy = array.slice();
+        for (var i = copy.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var temp = copy[i]; copy[i] = copy[j]; copy[j] = temp;
+        }
+        return copy;
+      }
+
+      function renderQuizStart() {
+        var pool = activeCards();
+        document.getElementById("quiz-shell").innerHTML = '<div class="quiz-start"><div class="big">兩種</div><h2>Choose a quiz</h2><p>Vocabulary comes first. Use the article quiz after you finish the Traditional Chinese reading.</p>' +
+          '<div class="quiz-modes"><button class="quiz-mode recommended" data-quiz-mode="vocab"><span class="mode-label">Start here</span><strong>Vocabulary quiz</strong><span>' + pool.length + ' cards · match each word to its English meaning</span></button>' +
+          '<button class="quiz-mode" data-quiz-mode="article"><span class="mode-label">After reading</span><strong>Article comprehension</strong><span>10 questions · test what the article says</span></button></div>' +
+          (pool.length < 4 ? '<p class="hint">Keep at least four vocabulary cards to build useful choices.</p>' : '') + '</div>';
+      }
+
+      function startQuiz(mode) {
+        quiz = { mode: mode, questions: [], index: 0, score: 0, answered: false };
+        if (mode === "article") quiz.questions = articleQuestions.slice();
+        else quiz.questions = shuffle(activeCards()).slice(0, Math.min(10, activeCards().length));
+        renderQuizQuestion();
+      }
+
+      function renderQuizQuestion() {
+        if (quiz.index >= quiz.questions.length) { renderQuizResult(); return; }
+        var item = quiz.questions[quiz.index];
+        var options;
+        var prompt;
+        if (quiz.mode === "article") {
+          options = item.options.map(function (text, index) { return {text:text, correct:index === item.answer}; });
+          prompt = '<div class="content-question">' + esc(item.prompt) + '</div>';
+        } else {
+          var wrongs = shuffle(activeCards().filter(function (card) { return card.id !== item.id; })).slice(0, 3).map(function (card) { return card.meaning; });
+          options = shuffle(wrongs.concat([item.meaning])).map(function (text) { return {text:text, correct:text === item.meaning}; });
+          prompt = '<div class="quiz-word">' + esc(item.traditional) + '</div><div class="quiz-pinyin">' + esc(item.pinyin) + '</div>';
+        }
+        document.getElementById("quiz-shell").innerHTML = '<div class="quiz-meta"><span>' + (quiz.mode === "article" ? 'Article' : 'Vocabulary') + ' · Question ' + (quiz.index + 1) + ' of ' + quiz.questions.length + '</span><span>' + quiz.score + ' correct</span></div>' +
+          '<div class="quiz-progress"><span style="width:' + (quiz.index / quiz.questions.length * 100) + '%"></span></div>' +
+          '<div class="quiz-prompt">' + prompt + '</div>' +
+          '<div class="option-list">' + options.map(function (option, i) { return '<button class="option" data-correct="' + (option.correct ? 'true' : 'false') + '"><span class="key">' + (i + 1) + '</span><span>' + esc(option.text) + '</span></button>'; }).join("") + '</div>' +
+          '<div class="feedback" id="quiz-feedback"></div>';
+      }
+
+      function answerQuiz(button) {
+        if (quiz.answered) return;
+        quiz.answered = true;
+        var item = quiz.questions[quiz.index];
+        var correct = button.dataset.correct === "true";
+        if (correct) quiz.score++;
+        document.querySelectorAll(".option").forEach(function (choice) {
+          choice.disabled = true;
+          if (choice.dataset.correct === "true") choice.classList.add("correct");
+          else if (choice === button) choice.classList.add("wrong");
+        });
+        var note = quiz.mode === "article" ? item.explanation : item.sentence_traditional;
+        document.getElementById("quiz-feedback").innerHTML = '<p><strong>' + (correct ? 'Correct.' : 'Not quite.') + '</strong> ' + esc(note) + '</p><button class="btn primary" id="next-question">' + (quiz.index + 1 === quiz.questions.length ? 'See result' : 'Next question') + '</button>';
+      }
+
+      function renderQuizResult() {
+        var pct = Math.round(quiz.score / quiz.questions.length * 100);
+        var next = quiz.mode === "vocab" ? '<button class="btn primary" data-go-article>Read the article</button><button class="btn" data-quiz-mode="vocab">Quiz vocabulary again</button>' : '<button class="btn primary" data-quiz-mode="article">Retry article quiz</button><button class="btn" id="choose-quiz">Choose another mode</button>';
+        document.getElementById("quiz-shell").innerHTML = '<div class="quiz-result"><div class="big">' + quiz.score + '/' + quiz.questions.length + '</div><h2>' + (pct >= 80 ? '穩了' : pct >= 60 ? '快要熟了' : '再來一輪') + '</h2><p>You answered ' + pct + '% correctly.</p><div class="actions" style="justify-content:center">' + next + '</div></div>';
+      }
+
+      function startStudy() {
+        study.queue = shuffle(activeCards());
+        study.index = 0;
+        study.revealed = false;
+        study.ratings = {again:0, hard:0, good:0, easy:0};
+        renderStudy();
+      }
+
+      function renderStudy() {
+        var shell = document.getElementById("study-shell");
+        if (!study.queue.length) {
+          shell.innerHTML = '<div class="empty">No cards are available. Restore or import a set in Article.</div>';
+          return;
+        }
+        if (study.index >= study.queue.length) {
+          var r = study.ratings;
+          shell.innerHTML = '<div class="quiz-result"><div class="big">完成</div><h2>Session complete</h2><p>' + r.good + ' good · ' + r.easy + ' easy · ' + r.hard + ' hard · ' + r.again + ' again</p><button class="btn primary" id="restart-study">Study again</button></div>';
+          return;
+        }
+        var card = study.queue[study.index];
+        shell.innerHTML = '<div class="study-top"><span>Card ' + (study.index + 1) + ' of ' + study.queue.length + '</span><span>' + (study.queue.length - study.index) + ' remaining</span></div>' +
+          '<article class="flashcard"><div class="flash-term">' + esc(card.traditional) + '</div><div class="flash-pinyin">' + esc(card.pinyin) + '</div>' +
+          '<div class="flash-answer' + (study.revealed ? ' visible' : '') + '" id="flash-answer"><div class="flash-meaning">' + esc(card.meaning) + '</div><div class="flash-sentence"><div class="zh">' + esc(card.sentence_traditional || '') + '</div><div>' + esc(card.sentence_pinyin || '') + '</div><div>' + esc(card.sentence_meaning || '') + '</div></div></div></article>' +
+          '<div class="reveal-row"' + (study.revealed ? ' style="display:none"' : '') + '><button class="btn primary" id="reveal-answer" style="width:100%">Reveal answer</button></div>' +
+          '<div class="rating-row' + (study.revealed ? ' visible' : '') + '" id="rating-row">' +
+          '<button class="rating" data-rating="again"><span>Again</span><small>this session</small></button><button class="rating" data-rating="hard"><span>Hard</span><small>2 days</small></button><button class="rating" data-rating="good"><span>Good</span><small>5 days</small></button><button class="rating" data-rating="easy"><span>Easy</span><small>12 days</small></button></div>' +
+          '<p class="session-note">Scheduling is a session preview; export the cards to keep long-term review history in Anki.</p>';
+      }
+
+      function rateStudy(rating) {
+        study.ratings[rating]++;
+        if (rating === "again") study.queue.push(study.queue[study.index]);
+        study.index++;
+        study.revealed = false;
+        renderStudy();
+      }
+
+      function renderExport() {
+        var approved = approvedCards();
+        document.getElementById("export-count").textContent = approved.length ? approved.length + " approved card" + (approved.length === 1 ? "" : "s") + " ready to export." : "Approve cards in Review before exporting.";
+        ["download-tsv","download-json","copy-tsv"].forEach(function (id) { document.getElementById(id).disabled = !approved.length; });
+      }
+
+      function tsvData() {
+        var header = ["Traditional","Pinyin","Meaning","PartOfSpeech","SentenceTraditional","SentencePinyin","SentenceMeaning"];
+        var rows = approvedCards().map(function (card) { return [card.traditional,card.pinyin,card.meaning,card.part_of_speech,card.sentence_traditional,card.sentence_pinyin,card.sentence_meaning].map(cleanCell).join("\t"); });
+        return [header.join("\t")].concat(rows).join("\n");
+      }
+
+      function cleanCell(value) { return String(value || "").replace(/[\t\r\n]+/g, " ").trim(); }
+      function download(filename, content, type) {
+        var blob = new Blob([content], {type:type});
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url; link.download = filename; document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+      }
+
+      function normalizeImported(raw) {
+        var arr = Array.isArray(raw) ? raw : raw.cards;
+        if (!Array.isArray(arr) || !arr.length) throw new Error("No cards found");
+        return arr.map(function (card, i) {
+          if (!card.traditional || !card.pinyin || !card.meaning) throw new Error("Card " + (i + 1) + " is missing a required field");
+          return {
+            id: "imported-" + Date.now() + "-" + i,
+            status: "pending",
+            traditional: String(card.traditional),
+            pinyin: String(card.pinyin),
+            meaning: String(card.meaning),
+            part_of_speech: String(card.part_of_speech || card.partOfSpeech || "word"),
+            sentence_traditional: String(card.sentence_traditional || card.sentenceTraditional || ""),
+            sentence_pinyin: String(card.sentence_pinyin || card.sentencePinyin || ""),
+            sentence_meaning: String(card.sentence_meaning || card.sentenceMeaning || "")
+          };
+        });
+      }
+
+      document.querySelectorAll(".nav button").forEach(function (button) { button.addEventListener("click", function () { setTab(button.dataset.tab); }); });
+      document.getElementById("clear-article").addEventListener("click", function () { document.getElementById("article-input").value = ""; });
+      document.getElementById("take-article-quiz").addEventListener("click", function () { setTab("quiz"); startQuiz("article"); });
+      document.getElementById("copy-prompt").addEventListener("click", function () {
+        var article = document.getElementById("article-input").value.trim();
+        if (!article) { showToast("Paste an article first."); return; }
+        var prompt = "From the Chinese article below, select 8–15 useful words or idioms for an upper-intermediate learner. Use Traditional Chinese. Return only valid JSON as {\"cards\":[...]}. Each card needs traditional, pinyin with tone marks, meaning, part_of_speech, sentence_traditional, sentence_pinyin, and sentence_meaning. Keep examples grounded in the article.\n\nARTICLE:\n" + article;
+        navigator.clipboard.writeText(prompt).then(function () { showToast("Prompt copied. Paste it to Hal."); }).catch(function () { showToast("Could not access the clipboard."); });
+      });
+      document.getElementById("import-json").addEventListener("click", function () {
+        var text = document.getElementById("json-input").value.trim();
+        if (!text) { showToast("Paste the returned JSON first."); return; }
+        try {
+          text = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+          cards = normalizeImported(JSON.parse(text));
+          updateGlobalStatus(); renderReview();
+          document.getElementById("import-hint").textContent = cards.length + " cards imported. Review them before export.";
+          showToast(cards.length + " cards imported.");
+          setTab("review");
+        } catch (error) {
+          document.getElementById("import-hint").textContent = "Could not import: " + error.message;
+          showToast("That JSON needs a quick fix.");
+        }
+      });
+      document.getElementById("use-prepared").addEventListener("click", function () { cards = clonePrepared(); updateGlobalStatus(); renderReview(); showToast("Prepared 12-card set restored."); });
+
+      document.querySelectorAll(".filter-btn").forEach(function (button) {
+        button.addEventListener("click", function () {
+          currentFilter = button.dataset.filter;
+          document.querySelectorAll(".filter-btn").forEach(function (item) { item.classList.toggle("active", item === button); });
+          renderReview();
+        });
+      });
+      document.getElementById("approve-all").addEventListener("click", function () {
+        cards.forEach(function (card) { if (currentFilter === "all" || card.status === currentFilter) card.status = "approved"; });
+        renderReview(); showToast("Visible cards approved.");
+      });
+      document.getElementById("review-list").addEventListener("click", function (event) {
+        var cardEl = event.target.closest(".review-card");
+        if (!cardEl) return;
+        var card = cards.find(function (item) { return item.id === cardEl.dataset.id; });
+        if (!card) return;
+        if (event.target.closest(".approve")) { card.status = "approved"; renderReview(); return; }
+        if (event.target.closest(".reject")) { card.status = "rejected"; renderReview(); return; }
+        if (event.target.closest(".edit-card")) { cardEl.querySelector(".edit-area").classList.add("open"); return; }
+        if (event.target.closest(".cancel-edit")) { cardEl.querySelector(".edit-area").classList.remove("open"); return; }
+        if (event.target.closest(".save-edit")) {
+          cardEl.querySelectorAll("[data-key]").forEach(function (input) { card[input.dataset.key] = input.value.trim(); });
+          card.status = "approved"; renderReview(); showToast("Card updated and approved.");
+        }
+      });
+
+      document.getElementById("quiz-shell").addEventListener("click", function (event) {
+        var mode = event.target.closest("[data-quiz-mode]");
+        if (mode) {
+          if (mode.dataset.quizMode === "vocab" && activeCards().length < 4) { showToast("Keep at least four cards for the vocabulary quiz."); return; }
+          startQuiz(mode.dataset.quizMode); return;
+        }
+        if (event.target.closest("[data-go-article]")) { setTab("article"); return; }
+        if (event.target.closest("#choose-quiz")) { renderQuizStart(); return; }
+        var option = event.target.closest(".option"); if (option) { answerQuiz(option); return; }
+        if (event.target.closest("#next-question")) { quiz.index++; quiz.answered = false; renderQuizQuestion(); }
+      });
+      document.addEventListener("keydown", function (event) {
+        if (!document.getElementById("panel-quiz").classList.contains("active") || quiz.answered) return;
+        var n = Number(event.key); if (n >= 1 && n <= 4) { var options = document.querySelectorAll(".option"); if (options[n - 1]) options[n - 1].click(); }
+      });
+      document.getElementById("study-shell").addEventListener("click", function (event) {
+        if (event.target.closest("#reveal-answer")) { study.revealed = true; renderStudy(); return; }
+        var rating = event.target.closest(".rating"); if (rating) { rateStudy(rating.dataset.rating); return; }
+        if (event.target.closest("#restart-study")) startStudy();
+      });
+
+      document.getElementById("download-tsv").addEventListener("click", function () { download("chinese-vocab-anki.tsv", "\uFEFF" + tsvData(), "text/tab-separated-values;charset=utf-8"); showToast("Anki TSV downloaded."); });
+      document.getElementById("download-json").addEventListener("click", function () {
+        var payload = {deck:document.getElementById("deck-name").value.trim(), cards:approvedCards().map(function (card) { var copy = Object.assign({}, card); delete copy.id; delete copy.status; return copy; })};
+        download("chinese-vocab.json", JSON.stringify(payload, null, 2), "application/json;charset=utf-8"); showToast("JSON downloaded.");
+      });
+      document.getElementById("copy-tsv").addEventListener("click", function () { navigator.clipboard.writeText(tsvData()).then(function () { showToast("TSV copied."); }).catch(function () { showToast("Could not access the clipboard."); }); });
+
+      cards = clonePrepared();
+      updateGlobalStatus();
+      renderReview();
+      renderQuizStart();
+      renderExport();
+    })();
+  </script>
+</body>
+</html>

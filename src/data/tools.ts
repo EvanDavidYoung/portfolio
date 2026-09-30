@@ -25,7 +25,7 @@ export const toolSections: { category: ToolCategory; heading: string; blurb: str
     category: 'modal',
     heading: 'Modal',
     blurb:
-      'GPU jobs that run on Modal. These cost money per invocation, so there is no public endpoint — the source is the useful part.'
+      'GPU jobs that run on Modal. These cost money per invocation, so none has an open endpoint — the source is the useful part, and the one with a UI needs a key.'
   }
 ]
 
@@ -71,6 +71,16 @@ export const tools: Tool[] = [
     note: 'Forked from hedwiggggg/ugrip (MIT), self-hosted',
     description:
       'Pulls the chords and lyrics for a song, transposes or simplifies the chords, and exports a clean PDF to actually play from. Not my code — I forked it and run my own copy.'
+  },
+  {
+    name: 'Stem splitter',
+    category: 'modal',
+    href: 'https://tools.evanyoung.dev/stem-splitter/',
+    source: 'https://github.com/EvanDavidYoung/stem-splitter/blob/main/stem_splitter.py',
+    sourceLabel: 'stem_splitter.py',
+    note: 'The UI needs an API key',
+    description:
+      'Split a song into vocals, drums, bass, guitar, piano and other with BS-RoFormer models on an L40S, then solo and mute the stems in a synced mixer in the browser. The high-quality mode takes vocals from a two-model RoFormer ensemble first, then runs the 6-stem model on the vocal-free instrumental, because a dedicated vocal model beats the 6-stem one on vocals and a vocal-free input cuts bleed in every other stem.'
   },
   {
     name: 'Diarized transcription',

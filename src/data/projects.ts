@@ -33,6 +33,8 @@ export const projects: Project[] = [
   },
   {
     name: 'Second brain',
+    href: '/second-brain-walkthrough/',
+    links: [{ label: 'Read the code walkthrough', href: '/second-brain-walkthrough/' }],
     stack: 'GitHub Actions · vLLM · Qwen3-VL · Modal',
     media: {
       type: 'image',

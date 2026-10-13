@@ -64,6 +64,14 @@ export const tools: Tool[] = [
       'Read along with spoken Mandarin word by word, in simplified or traditional, then loop a sentence or have it pause after each one so you can repeat it out loud. Four articles are bundled; paste your own text and it generates the audio a sentence at a time, so the sentence boundaries the drill depends on are exact.'
   },
   {
+    name: 'ICS to Google Calendar',
+    category: 'html',
+    href: 'https://tools.evanyoung.dev/ics-to-gcal/',
+    source: 'https://github.com/EvanDavidYoung/tools',
+    description:
+      'Drop an .ics invite and get an “add to Google Calendar” link for each event in it, with the title, description, location and recurrence carried over. Keeps an event’s own time zone rather than converting to UTC, so a weekly meeting stays at the same local time after a DST change, and maps the Windows zone names Outlook writes to real ones.'
+  },
+  {
     name: 'Guitar tab ripper',
     category: 'html',
     href: 'https://evanyoung.dev/ugrip/',

@@ -24,8 +24,8 @@
   "dependencies": {
     "@astrojs/cloudflare": "^13.6.0",
     "@astrojs/mdx": "^5.0.6",
-    "@astrojs/rss": "^4.0.18",
-    "@astrojs/sitemap": "^3.7.2",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3",
     "astro": "^6.3.3",
     "feed": "^5.2.1",
     "katex": "^0.16.47",
@@ -41,7 +41,7 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.9",
+    "@astrojs/check": "^0.9.10",
     "@eslint/js": "^10.0.1",
     "@types/markdown-it": "^14.1.2",
     "@types/sanitize-html": "^2.16.1",

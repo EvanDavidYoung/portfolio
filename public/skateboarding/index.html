@@ -1,0 +1,1631 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trick Index</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f5f3ee;
+        --surface: #ffffff;
+        --surface-2: #ebe8e1;
+        --text: #1f1e1c;
+        --muted: #75716a;
+        --faint: #a9a49b;
+        --line: rgba(31, 30, 28, 0.08);
+        --accent: #c0643c;
+        --accent-soft: rgba(192, 100, 60, 0.12);
+        --shadow: 0 1px 2px rgba(31, 30, 28, 0.04), 0 12px 32px -12px rgba(31, 30, 28, 0.18);
+        --glass: rgba(255, 255, 255, 0.72);
+        --serif: 'Instrument Serif', Georgia, serif;
+        --sans: 'Inter', system-ui, sans-serif;
+        --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --bg: #141413;
+          --surface: #1d1c1a;
+          --surface-2: #262522;
+          --text: #ecebe6;
+          --muted: #a09c94;
+          --faint: #6c6861;
+          --line: rgba(236, 235, 230, 0.08);
+          --accent: #e08a5f;
+          --accent-soft: rgba(224, 138, 95, 0.14);
+          --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+          --glass: rgba(29, 28, 26, 0.72);
+        }
+      }
+      :root[data-theme='dark'] {
+        --bg: #141413;
+        --surface: #1d1c1a;
+        --surface-2: #262522;
+        --text: #ecebe6;
+        --muted: #a09c94;
+        --faint: #6c6861;
+        --line: rgba(236, 235, 230, 0.08);
+        --accent: #e08a5f;
+        --accent-soft: rgba(224, 138, 95, 0.14);
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+        --glass: rgba(29, 28, 26, 0.72);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.65 var(--sans);
+        -webkit-font-smoothing: antialiased;
+      }
+      a {
+        color: inherit;
+      }
+      img,
+      video {
+        display: block;
+        max-width: 100%;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ---------- nav ---------- */
+      nav {
+        padding: 20px 0;
+      }
+      nav .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .logo {
+        font: 500 15px/1 var(--mono);
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+      }
+      .logo span {
+        color: var(--accent);
+      }
+      .seg {
+        display: flex;
+        gap: 2px;
+        padding: 4px;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        background: var(--surface-2);
+        border-radius: 999px;
+      }
+      .seg::-webkit-scrollbar {
+        display: none;
+      }
+      .seg button {
+        border: 0;
+        background: none;
+        cursor: pointer;
+        white-space: nowrap;
+        padding: 7px 13px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        transition:
+          background 0.2s,
+          color 0.2s,
+          box-shadow 0.2s;
+      }
+      .seg button:hover {
+        color: var(--text);
+      }
+      .seg button[aria-selected='true'] {
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        padding: 48px 0 96px;
+      }
+      .hero .wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+        gap: 64px;
+        align-items: center;
+      }
+      .kicker {
+        font: 500 12px/1 var(--mono);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent);
+        margin: 0 0 18px;
+      }
+      .hero h1 {
+        font: 700 clamp(40px, 6vw, 76px)/1 var(--mono);
+        letter-spacing: -0.05em;
+        margin: 0;
+        text-wrap: balance;
+      }
+      .alias {
+        font: italic 24px/1.3 var(--serif);
+        color: var(--muted);
+        margin: 12px 0 24px;
+      }
+      .blurb {
+        font-size: 17px;
+        color: var(--muted);
+        margin: 0 0 36px;
+        max-width: 46ch;
+      }
+      .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px 32px;
+        margin: 0;
+      }
+      .facts dt {
+        font-size: 12px;
+        color: var(--faint);
+        margin-bottom: 4px;
+      }
+      .facts dd {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 500;
+      }
+      .dots {
+        display: inline-flex;
+        gap: 5px;
+        vertical-align: middle;
+        margin-right: 8px;
+      }
+      .dots i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--surface-2);
+      }
+      .dots i.on {
+        background: var(--accent);
+      }
+
+      .hero-media {
+        position: relative;
+        margin: 0;
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        background: var(--surface-2);
+      }
+      .hero-media video {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+      }
+      .hero-media figcaption {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        font-size: 12px;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        color: var(--text);
+      }
+
+      /* ---------- sections ---------- */
+      section.block {
+        padding: 80px 0;
+      }
+      .sec-head {
+        margin-bottom: 36px;
+      }
+      .sec-head h2 {
+        font: 400 clamp(40px, 5vw, 56px)/1 var(--serif);
+        letter-spacing: -0.01em;
+        margin: 0 0 8px;
+      }
+      .sec-head p {
+        color: var(--muted);
+        margin: 0;
+      }
+
+      /* ---------- breakdown: horizontal steps ---------- */
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        margin: 0 0 40px;
+        padding: 0;
+        list-style: none;
+      }
+      .steps button {
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: 0;
+        cursor: pointer;
+        padding: 8px 8px 12px;
+        border-radius: 20px;
+        transition:
+          background 0.25s,
+          box-shadow 0.25s;
+      }
+      .steps img {
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+        border-radius: 13px;
+        filter: grayscale(1);
+        opacity: 0.5;
+        transition:
+          filter 0.25s,
+          opacity 0.25s;
+      }
+      .steps .lbl {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin: 10px 4px 0;
+      }
+      .steps .num {
+        font: 500 11px/1 var(--mono);
+        color: var(--faint);
+      }
+      .steps .name {
+        font: 400 20px/1.15 var(--serif);
+        color: var(--muted);
+        transition: color 0.25s;
+      }
+      .steps button:hover img {
+        opacity: 0.8;
+      }
+      .steps button:hover .name {
+        color: var(--text);
+      }
+      .steps button[aria-selected='true'] {
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .steps button[aria-selected='true'] img {
+        filter: none;
+        opacity: 1;
+      }
+      .steps button[aria-selected='true'] .name {
+        color: var(--text);
+      }
+      .steps button[aria-selected='true'] .num {
+        color: var(--accent);
+      }
+
+      .detail {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+        gap: 56px;
+        align-items: center;
+      }
+      .p-count {
+        font: 500 12px/1 var(--mono);
+        color: var(--accent);
+        margin: 0 0 12px;
+      }
+      .p-name {
+        font: 400 44px/1.05 var(--serif);
+        margin: 0 0 16px;
+      }
+      .p-desc {
+        color: var(--muted);
+        margin: 0 0 20px;
+      }
+      .p-tip {
+        font-size: 15px;
+        background: var(--accent-soft);
+        padding: 12px 16px;
+        border-radius: 14px;
+        margin: 0;
+      }
+      .p-tip b {
+        font-weight: 600;
+      }
+
+      .player {
+        position: relative;
+        border-radius: 28px;
+        overflow: hidden;
+        background: #000;
+        box-shadow: var(--shadow);
+      }
+      .player video {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+      }
+      .progress {
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        top: 18px;
+        height: 3px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.25);
+        overflow: hidden;
+      }
+      .progress i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: #fff;
+      }
+      .controls {
+        position: absolute;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        padding: 4px;
+        border-radius: 999px;
+        background: var(--glass);
+        backdrop-filter: blur(14px);
+        white-space: nowrap;
+      }
+      .controls button {
+        border: 0;
+        background: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 999px;
+        color: var(--muted);
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .controls button:hover {
+        color: var(--text);
+      }
+      .controls button[aria-pressed='true'] {
+        background: var(--surface);
+        color: var(--text);
+      }
+      .controls .sep {
+        width: 1px;
+        height: 16px;
+        background: var(--line);
+        margin: 0 4px;
+      }
+
+      /* ---------- drills ---------- */
+      .drills {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+      }
+      .drill {
+        background: var(--surface);
+        border-radius: 22px;
+        padding: 24px 24px 26px;
+        box-shadow: var(--shadow);
+      }
+      .drill-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+      .drill-num {
+        font: 500 12px/1 var(--mono);
+        color: var(--accent);
+      }
+      .reps {
+        font: 500 12px/1 var(--mono);
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        color: var(--muted);
+      }
+      .drill h3 {
+        font: 400 26px/1.15 var(--serif);
+        margin: 0 0 10px;
+      }
+      .drill p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 15px;
+      }
+      .drill .goal {
+        margin-top: 14px;
+        font-size: 13px;
+        color: var(--faint);
+      }
+      .drill .goal b {
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      /* ---------- tutorials ---------- */
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 24px;
+      }
+      .card {
+        text-decoration: none;
+        display: block;
+      }
+      .card .thumb {
+        position: relative;
+        border-radius: 18px;
+        overflow: hidden;
+        background: var(--surface-2);
+      }
+      .card .thumb img {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+      .card:hover .thumb img {
+        transform: scale(1.04);
+      }
+      .card .thumb::after {
+        content: '';
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--glass)
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 7l8 5-8 5z' fill='%23888'/%3E%3C/svg%3E")
+          center / 20px no-repeat;
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        transform: translateY(4px);
+        transition:
+          opacity 0.25s,
+          transform 0.25s;
+      }
+      .card:hover .thumb::after {
+        opacity: 1;
+        transform: none;
+      }
+      .card .chan {
+        font-size: 12px;
+        color: var(--faint);
+        margin: 14px 0 2px;
+      }
+      .card h3 {
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.35;
+        margin: 0 0 6px;
+      }
+      .card p {
+        font-size: 14px;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      footer {
+        padding: 32px 0 56px;
+        font-size: 13px;
+        color: var(--faint);
+      }
+      footer .wrap {
+        border-top: 1px solid var(--line);
+        padding-top: 24px;
+      }
+      footer a {
+        color: var(--muted);
+      }
+
+      @media (max-width: 900px) {
+        nav .wrap {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 14px;
+        }
+        .seg {
+          align-self: flex-start;
+          max-width: 100%;
+        }
+        .hero .wrap,
+        .detail {
+          grid-template-columns: 1fr;
+          gap: 32px;
+        }
+        .hero-media {
+          order: -1;
+        }
+        .detail .player {
+          order: -1;
+        }
+        .steps {
+          grid-template-columns: none;
+          grid-auto-flow: column;
+          grid-auto-columns: 168px;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          padding-bottom: 8px;
+        }
+        .steps li {
+          scroll-snap-align: start;
+        }
+        .drills {
+          grid-template-columns: 1fr;
+        }
+        .cards {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 520px) {
+        .wrap {
+          padding: 0 16px;
+        }
+        .hero {
+          padding: 16px 0 56px;
+        }
+        section.block {
+          padding: 56px 0;
+        }
+        .steps {
+          grid-auto-columns: 140px;
+        }
+        .p-name {
+          font-size: 36px;
+        }
+        .cards {
+          grid-template-columns: 1fr;
+        }
+        .controls button {
+          padding: 6px 9px;
+        }
+        .hero-media,
+        .player {
+          border-radius: 20px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="wrap">
+        <div class="logo">trick<span>_</span>index</div>
+        <div class="seg" role="tablist" id="trickTabs"></div>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <div class="wrap">
+        <div>
+          <p class="kicker" id="tCategory"></p>
+          <h1 id="tName"></h1>
+          <p class="alias" id="tAlias"></p>
+          <p class="blurb" id="tBlurb"></p>
+          <dl class="facts">
+            <div>
+              <dt>Difficulty</dt>
+              <dd id="tDiff"></dd>
+            </div>
+            <div>
+              <dt>Learn first</dt>
+              <dd id="tPrereq"></dd>
+            </div>
+            <div>
+              <dt>Terrain</dt>
+              <dd id="tTerrain"></dd>
+            </div>
+          </dl>
+        </div>
+        <figure class="hero-media">
+          <video id="heroVid" muted loop autoplay playsinline></video>
+          <figcaption>Slow motion</figcaption>
+        </figure>
+      </div>
+    </header>
+
+    <section class="block" id="breakdown">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>Breakdown</h2>
+          <p>Pick a step to loop just that part of the trick.</p>
+        </div>
+        <ol class="steps" role="tablist" id="steps"></ol>
+        <div class="detail">
+          <div>
+            <p class="p-count" id="pCount"></p>
+            <h3 class="p-name" id="pName"></h3>
+            <p class="p-desc" id="pDesc"></p>
+            <p class="p-tip" id="pTip"></p>
+          </div>
+          <div class="player">
+            <video id="clip" muted playsinline autoplay></video>
+            <div class="progress"><i id="prog"></i></div>
+            <div class="controls">
+              <button id="fullBtn" aria-pressed="false">Whole trick</button>
+              <span class="sep"></span>
+              <button data-rate="1">1×</button>
+              <button data-rate="0.5">½×</button>
+              <button data-rate="0.25">¼×</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="drills">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>Drills</h2>
+          <p>Practice these before going for the whole trick.</p>
+        </div>
+        <div class="drills" id="drillList"></div>
+      </div>
+    </section>
+
+    <section class="block" id="tutorials">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2>Tutorials</h2>
+          <p>Video lessons worth watching. Each one opens on YouTube.</p>
+        </div>
+        <div class="cards" id="cards"></div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap" id="credits"></div>
+    </footer>
+
+    <script>
+      const TRICKS = {
+        ollie: {
+          tab: 'Ollie',
+          name: 'Ollie',
+          alias: 'The Foundation',
+          category: 'Flat ground · Fundamental',
+          blurb:
+            "Almost every trick starts here. Crouch, snap the tail, drag your front foot up the grip tape, and the board rises with you. You never touch it with your hands. It's all leverage and timing.",
+          difficulty: 2,
+          difficultyLabel: 'Beginner',
+          prereq: 'Pushing, tic-tacs',
+          terrain: 'Flat, curbs, gaps',
+          credit: {
+            by: 'Brad Jensen',
+            url: 'https://www.youtube.com/watch?v=vlUzHIVdYEQ',
+            title: 'Ollie (Slow Motion)'
+          },
+          phases: [
+            {
+              name: 'Set Up',
+              range: [0, 3.25],
+              desc: 'Put the ball of your back foot on the tail and your front foot just behind the front bolts. Keep your shoulders in line with the board, then crouch low with your weight centered.',
+              tip: 'Crouch deeper than feels natural. A low crouch means a bigger jump.'
+            },
+            {
+              name: 'Pop',
+              range: [3.25, 4.75],
+              desc: 'Jump up and snap the tail into the ground with the ball of your back foot. Most of the height comes from your jump. The snap only gets the nose moving.',
+              tip: 'Jump first and let the pop follow. If you stomp without jumping, the board stays on the ground.'
+            },
+            {
+              name: 'Slide',
+              range: [4.5, 5.75],
+              desc: 'As the nose comes up, roll your front ankle and drag the side of your shoe up toward the nose. The friction from the grip tape pulls the board up into the air.',
+              tip: 'Keep the slide going all the way to the nose. Stopping halfway leaves the board pointing up at an angle.'
+            },
+            {
+              name: 'Level Out',
+              range: [5.5, 7],
+              desc: 'Push your front foot forward to level the board, and lift your back knee so the tail can come up. At the peak, pull both knees toward your chest.',
+              tip: "Board flat, knees up. That's what makes the ollie look floaty."
+            },
+            {
+              name: 'Land',
+              range: [6.75, 9.5],
+              desc: 'Push the board back down with both feet over the bolts, then bend your knees to absorb the landing. Keep your shoulders square and roll away.',
+              tip: 'Landing on the bolts protects the board. Landing on the middle is how decks snap.'
+            }
+          ],
+          drills: [
+            {
+              name: 'Tail Snaps',
+              reps: '3 × 10',
+              desc: "Stand on the board on grass or carpet so it can't roll. Snap the tail to the ground and hop, without worrying about the front foot yet.",
+              goal: 'A loud, sharp pop every time.'
+            },
+            {
+              name: 'Hold-On Ollies',
+              reps: '3 × 10',
+              desc: "Hold a railing or a friend's shoulder and do full ollies in place. The support lets you focus on the slide and on lifting your knees.",
+              goal: 'Board comes up level, and you land on the bolts.'
+            },
+            {
+              name: 'Line Ollies',
+              reps: '20 tries',
+              desc: 'Roll at walking speed and ollie over a crack or a chalk line. Once that feels easy, try it over a flat stick or a shoe.',
+              goal: 'Clear the line and roll away.'
+            }
+          ],
+          tutorials: [
+            {
+              id: 'QkeOAcj8Y5k',
+              title: 'The Fastest Way to Learn How to Ollie',
+              channel: 'Braille Skateboarding',
+              why: "Stationary drills that break the ollie into pieces. Start here if you can't get the board off the ground yet."
+            },
+            {
+              id: 'KJnZvKwgZaA',
+              title: 'How To Ollie In Under 4 Minutes',
+              channel: 'CCS',
+              why: 'Short and to the point. Good for a quick refresher before a session.'
+            },
+            {
+              id: 'JNmUK9fvrAs',
+              title: 'How to Ollie with Ricky Glaser',
+              channel: 'Ricky Glaser',
+              why: 'A pro explains how he thinks about the pop and the slide.'
+            },
+            {
+              id: 'hnqg_fkBkNM',
+              title: "How to Ollie: The Only Ollie Tutorial You'll Ever Need",
+              channel: 'Skate IQ',
+              why: 'A 45-minute deep dive. Use it to fix specific problems like a crooked or low ollie.'
+            }
+          ]
+        },
+
+        powerslide: {
+          tab: 'Powerslide',
+          name: 'Powerslide',
+          alias: 'The Handbrake',
+          category: 'Cruising · Speed control',
+          blurb:
+            "Turn the board sideways so the wheels skid across the ground, then straighten it out again. It's the cleanest way to slow down or stop at speed, and once you can do it, hills get a lot less scary.",
+          difficulty: 2,
+          difficultyLabel: 'Beginner+',
+          prereq: 'Pushing, carving, kickturns',
+          terrain: 'Smooth flat, mellow hills',
+          credit: {
+            by: 'Nikkie Melton',
+            url: 'https://www.youtube.com/watch?v=62khkKskZ7E',
+            title: 'Skateboard slow motion powerslide'
+          },
+          phases: [
+            {
+              name: 'Set Up',
+              range: [0, 1.5],
+              desc: 'Roll at a comfortable speed with your back foot over the back bolts and your front foot over the front bolts. Bend your knees and keep your weight centered.',
+              tip: 'Start slower than you think. Learning to slide at jogging speed is enough.'
+            },
+            {
+              name: 'Wind Up',
+              range: [1, 2.5],
+              desc: "Twist your shoulders a little in the opposite direction from the way you'll slide. That wind-up stores the energy you'll use to whip the board around.",
+              tip: 'Arms out to the side help you balance and feel the rotation.'
+            },
+            {
+              name: 'Kick Out',
+              range: [2.25, 4],
+              desc: 'Unwind your shoulders and push the tail out with your back foot so the board turns about 90 degrees across your direction of travel. Your front foot pivots in place.',
+              tip: 'Do it in one quick motion. If you turn slowly, the wheels grip and the board just turns instead of sliding.'
+            },
+            {
+              name: 'Slide',
+              range: [3.75, 9],
+              desc: "Lean against the slide, back on your heels for a frontside slide, with your knees bent and your weight over the board. Let the wheels skid until you've scrubbed off the speed you want.",
+              tip: 'If you lean too far back, the wheels grip and you get pulled off. Stay low and stay over the bolts.'
+            },
+            {
+              name: 'Recover',
+              range: [8.75, 13],
+              desc: 'Ease off the pressure and use your back foot to bring the board back in line with your direction of travel. Then keep rolling, or slide all the way to a stop.',
+              tip: 'Harder wheels (99a and up) slide much more easily than soft cruiser wheels.'
+            }
+          ],
+          drills: [
+            {
+              name: 'Stationary Kickouts',
+              reps: '3 × 10',
+              desc: 'On carpet or grass, practice whipping the board 90 degrees with your back foot while your front foot pivots. Build the motion before you add speed.',
+              goal: 'A quick, smooth 90-degree turn.'
+            },
+            {
+              name: 'Walking-Speed Slides',
+              reps: '15 tries',
+              desc: 'Find smooth, slightly dusty ground and do tiny slides at walking speed. Focus on how far you lean and on keeping your knees bent.',
+              goal: 'Short skids with no wheel bite.'
+            },
+            {
+              name: 'Speed Ladder',
+              reps: '3 sets',
+              desc: 'Do five slides, then roll a little faster for the next five. Only move up a level when you land the current one every time.',
+              goal: 'Stop yourself from medium speed on command.'
+            }
+          ],
+          tutorials: [
+            {
+              id: 'U2xD-BsTbUU',
+              title: 'How-To Skateboarding: Powerslides with Spencer Nuzzi',
+              channel: 'RIDE Channel',
+              why: 'The most-watched powerslide tutorial, with a clear demo and a good explanation.'
+            },
+            {
+              id: 'LtF_gdpw5hU',
+              title: 'How to Powerslide on a Skateboard the Easiest Way',
+              channel: 'Braille Skateboarding',
+              why: 'A beginner-friendly progression with lots of practice steps.'
+            },
+            {
+              id: '8_VqJ3j71s0',
+              title: 'How To Powerslide',
+              channel: 'Ben Degros',
+              why: 'Shown downhill, which is where powerslides actually get used.'
+            },
+            {
+              id: '6ENme3IZfkg',
+              title: 'How to Powerslide on a Skateboard',
+              channel: 'Skate IQ',
+              why: 'A long breakdown of common mistakes and how to fix them.'
+            }
+          ]
+        },
+
+        'bs-shuvit': {
+          tab: 'BS Shuvit',
+          name: 'BS Pop Shuvit',
+          alias: 'The First Spin',
+          category: 'Flat ground · Fundamental',
+          blurb:
+            "Pop the tail and scoop it behind you so the board spins 180 degrees backside underneath you while you jump straight up. It's often the first spin trick people land, and it teaches the scoop that shows up in a lot of later tricks.",
+          difficulty: 2,
+          difficultyLabel: 'Beginner',
+          prereq: 'Ollie pop, shuvit (no pop)',
+          terrain: 'Flat, curbs, manual pads',
+          credit: {
+            by: 'Adam Shomsky',
+            url: 'https://www.youtube.com/watch?v=xvaNfjEY2hc',
+            title: 'Skateology: bs pop shuv (1000 fps)'
+          },
+          phases: [
+            {
+              name: 'Set Up',
+              range: [0, 1.75],
+              desc: 'Put your back foot in the toe-side pocket of the tail, with your toes near the edge so you can scoop backward. Put your front foot just behind the front bolts and keep it relaxed.',
+              tip: "Your front foot only guides. Don't let it slide or flick."
+            },
+            {
+              name: 'Pop & Scoop',
+              range: [1.5, 2.75],
+              desc: 'Pop the tail and scoop it backward, behind your heels, in one motion. The pop lifts the board and the scoop spins it.',
+              tip: "Scoop back and down, like you're sweeping something behind you."
+            },
+            {
+              name: 'Spin',
+              range: [2.5, 5.25],
+              desc: 'Jump straight up and let the board turn 180 degrees underneath you. Keep your shoulders facing the same way they started.',
+              tip: 'Jump up, not forward. Jumping forward makes you land past the board.'
+            },
+            {
+              name: 'Catch',
+              range: [5, 7],
+              desc: 'As the tail comes around to the front, put your back foot down on it first to stop the spin, then bring your front foot down.',
+              tip: "Watch the board the whole time. You can't catch what you can't see."
+            },
+            {
+              name: 'Land',
+              range: [6.75, 10.1],
+              desc: "Land with both feet over the bolts, knees bent, and roll away. You'll be in your normal stance with the board facing the other way.",
+              tip: 'Ride away at least a few feet before you count it.'
+            }
+          ],
+          drills: [
+            {
+              name: 'Scoop Taps',
+              reps: '20 reps',
+              desc: 'Stand with only your back foot on the tail and the front foot on the ground. Scoop the tail backward so the board spins 180 degrees, without getting on it.',
+              goal: 'The board spins exactly 180 degrees, flat.'
+            },
+            {
+              name: 'Stationary Pop Shuvs',
+              reps: '3 × 10',
+              desc: 'On grass or carpet, do the full trick in place. Focus on jumping straight up and catching with your back foot first.',
+              goal: 'Land on the bolts five times in a row.'
+            },
+            {
+              name: 'Rolling at Walking Speed',
+              reps: '20 tries',
+              desc: 'Roll slowly and do pop shuvs. Keep your shoulders square to the board the whole time.',
+              goal: 'Roll away clean.'
+            }
+          ],
+          tutorials: [
+            {
+              id: 'vy9sTgjhel4',
+              title: 'Quick and Easy Shuvit Tutorial',
+              channel: 'Skate IQ',
+              why: 'Builds from the basic shuvit up to the pop shuvit.'
+            },
+            {
+              id: 'WvQwAJAx5as',
+              title: 'How to Shuvit & Pop Shuvit | In-Depth Trick Tip',
+              channel: 'Tactics Boardshop',
+              why: 'A thorough explanation of where to put your feet and how to time it.'
+            },
+            {
+              id: '2BXzIWbSo-4',
+              title: 'How to Pop Shuvit - Beginner Tutorial (Slow Motion)',
+              channel: 'Skiddy Skates',
+              why: 'Lots of slow-motion footage of the scoop.'
+            },
+            {
+              id: 'mzI2StoiLKE',
+              title: 'How to Shuvit, BS & FS Pop Shuvit, with Pro Tips',
+              channel: 'Skatepark Lessons',
+              why: 'Covers both directions, plus safety tips and challenges.'
+            }
+          ]
+        },
+
+        'fs-shuvit': {
+          tab: 'FS Shuvit',
+          name: 'FS Pop Shuvit',
+          alias: 'The Push-Spin',
+          category: 'Flat ground · Spin',
+          blurb:
+            "The backside shuvit in reverse. Pop the tail and push it forward, out in front of your toes, so the board spins frontside under you. It feels awkward at first because you're pushing the board away instead of pulling it toward you.",
+          difficulty: 2,
+          difficultyLabel: 'Beginner+',
+          prereq: 'BS pop shuvit',
+          terrain: 'Flat, curbs, banks',
+          credit: {
+            by: 'Adam Shomsky',
+            url: 'https://www.youtube.com/watch?v=HBDCAhZnS4I',
+            title: 'Skateology: frontside pop shuv (1000 fps)'
+          },
+          phases: [
+            {
+              name: 'Pop & Scoop',
+              range: [0, 1.25],
+              desc: 'Put your back foot in the middle of the tail, slightly toward the heel edge. Pop and push the tail forward, out in front of your toes. That forward push spins the board frontside.',
+              tip: "Think 'push', not 'scoop'. The motion goes forward and out."
+            },
+            {
+              name: 'Jump',
+              range: [0.75, 2.25],
+              desc: 'Jump straight up off the pop and lift your front foot out of the way so the nose can swing around underneath it.',
+              tip: 'Lift your front knee high. A low front foot gets in the way of the board.'
+            },
+            {
+              name: 'Spin',
+              range: [2, 4.75],
+              desc: 'Let the board rotate 180 degrees. Keep your shoulders square and your eyes on the grip tape.',
+              tip: 'Your body will want to turn with the board. Keep your chest still.'
+            },
+            {
+              name: 'Catch',
+              range: [4.5, 6.25],
+              desc: 'Once the tail has come all the way around, put your back foot down on it first to stop the spin, then put your front foot down.',
+              tip: 'If the board keeps over-rotating, push less. You need less force than you think.'
+            },
+            {
+              name: 'Land',
+              range: [6, 8.85],
+              desc: 'Land over both sets of bolts with your knees bent, and roll away.',
+              tip: 'Stay centered. Landing on your heels is the most common way this trick goes wrong.'
+            }
+          ],
+          drills: [
+            {
+              name: 'Forward Push Taps',
+              reps: '20 reps',
+              desc: 'Front foot on the ground, back foot on the tail. Push the tail forward so the board spins frontside 180 degrees, without getting on it.',
+              goal: 'The board spins flat and stops at 180 degrees.'
+            },
+            {
+              name: 'Hold-On FS Shuvs',
+              reps: '3 × 10',
+              desc: 'Hold a railing and do the full trick on grass. The support lets you focus on keeping your shoulders still.',
+              goal: 'Catch with your back foot every time.'
+            },
+            {
+              name: 'Shuv Pairs',
+              reps: '10 pairs',
+              desc: 'Do a BS shuvit and then an FS shuvit right after, so the board ends up facing the way it started. Switching directions sharpens your control of the scoop.',
+              goal: 'Land both tricks in a row without stopping.'
+            }
+          ],
+          tutorials: [
+            {
+              id: 'rbpllQ2bGAE',
+              title: 'How to Frontside Shove It the Easiest Way 2.0',
+              channel: 'Braille Skateboarding',
+              why: 'Step-by-step progression for beginners.'
+            },
+            {
+              id: 'Ow0FJbBSIyg',
+              title: 'How to FS Pop Shove It',
+              channel: 'Jonny Giger',
+              why: 'A detailed breakdown of foot position and the push.'
+            },
+            {
+              id: 'mvMIOoqElmA',
+              title: 'The Biggest Problem with Front Shuvs and How to Fix It',
+              channel: 'Skate IQ',
+              why: 'Watch this if the board keeps over-rotating or landing behind you.'
+            },
+            {
+              id: 'L731U3im7wk',
+              title: 'How To Frontside Shove It Better',
+              channel: 'VLSkate',
+              why: 'For cleaning up a frontside shuvit you can already land.'
+            }
+          ]
+        },
+
+        'no-comply-fs-shuvit': {
+          tab: 'NC FS Shuvit',
+          name: 'No-Comply FS Shuvit',
+          alias: 'The Sidestep Spin',
+          category: 'Flat ground · Old school',
+          blurb:
+            "Step your front foot off the board, pop the tail, and scoop the board through a frontside 180 while your feet are off it. Then step back on. It looks loose and stylish, and you don't need an ollie to learn it.",
+          difficulty: 2,
+          difficultyLabel: 'Beginner+',
+          prereq: 'No-comply, FS pop shuvit',
+          terrain: 'Flat, banks, curbs',
+          credit: {
+            by: 'Braille Skateboarding',
+            url: 'https://www.youtube.com/watch?v=VRaecuTj6GU',
+            title: 'No Comply Front Shove Super Slow Motion'
+          },
+          phases: [
+            {
+              name: 'Set Up',
+              range: [0, 2.5],
+              desc: 'Roll slowly. Put your back foot on the tail with your toes slightly over the toe-side edge, ready to push forward. Put your front foot near the heel edge behind the front bolts so it can step off easily.',
+              tip: 'Keep your speed low. A fast roll makes it hard to time the plant.'
+            },
+            {
+              name: 'Step Off',
+              range: [2.25, 3.5],
+              desc: 'Step your front foot off on the heel side and plant it on the ground next to the front truck. Shift your weight onto that foot. It becomes your launch point.',
+              tip: 'Plant close to the board. If your foot lands too far away, you have to lunge to get back on.'
+            },
+            {
+              name: 'Pop & Scoop',
+              range: [3.25, 4.5],
+              desc: 'As your front foot plants, pop the tail and scoop it forward, out in front of your toes. That forward scoop spins the board frontside. Hop off your planted foot at the same moment.',
+              tip: 'Push the scoop forward, not down. Popping straight down only gives you a no-comply.'
+            },
+            {
+              name: 'Spin',
+              range: [4.25, 7.75],
+              desc: 'Let the board turn 180 degrees underneath you while your body stays facing the same way. Watch the bolts come around so you know when to step back on.',
+              tip: 'Keep your shoulders still. If they turn, the board will usually over-rotate.'
+            },
+            {
+              name: 'Catch & Roll',
+              range: [7.5, 9.5],
+              desc: 'Bring your front foot back over the front bolts and catch the board with both feet, knees bent. Roll away facing the same way you started.',
+              tip: "Back foot lands first, then the front foot. That way you're catching the board, not chasing it."
+            }
+          ],
+          drills: [
+            {
+              name: 'Rolling No-Complies',
+              reps: '20 tries',
+              desc: 'Do plain no-complies while rolling: step off, pop, and step back on. The step-off timing needs to feel automatic before you add the spin.',
+              goal: 'Step back on smoothly without looking down.'
+            },
+            {
+              name: 'Step & Scoop',
+              reps: '20 reps',
+              desc: "Standing still, step your front foot off and push the tail forward so the board spins frontside 180 degrees. Don't try to land on it yet. Just watch it spin.",
+              goal: 'The board spins flat and stays close to you.'
+            },
+            {
+              name: 'Back-Foot Catch',
+              reps: '15 tries',
+              desc: 'Do the full trick slowly, but catch the board with only your back foot and keep your front foot on the ground. It teaches you when to stop the spin.',
+              goal: 'Stop the board at 180 degrees with your back foot.'
+            }
+          ],
+          tutorials: [
+            {
+              id: 'W85x0HTBXg8',
+              title: 'No-Comply Frontside Shuv with Spencer Nuzzi',
+              channel: 'RIDE Channel',
+              why: 'The best-known tutorial for this trick. A clear demo with every step explained.'
+            },
+            {
+              id: '6kOdI4gsTCE',
+              title: 'No-Comply Front Shuv Tutorial',
+              channel: 'Thorne Benatar',
+              why: 'Short, with good close-ups of where to put your feet.'
+            },
+            {
+              id: 'D6Lq9zD2w2w',
+              title: 'How to No-Comply Front Shuv with Weston Asselin',
+              channel: 'Erek Brown',
+              why: 'Another angle on the pop and scoop timing.'
+            },
+            {
+              id: 'xlrOAIdlpN4',
+              title: 'Quick No Comply Tutorial',
+              channel: 'Skate IQ',
+              why: 'Learn the plain no-comply first if the step-off still feels awkward.'
+            }
+          ]
+        },
+
+        'fs-180': {
+          tab: 'FS 180',
+          name: 'Frontside 180',
+          alias: 'The Open Door',
+          category: 'Flat ground · Rotation',
+          blurb:
+            "Ollie and turn your chest toward the direction you're rolling, spinning the board and your body together through a half turn. You land riding fakie. Because you turn to face forward, you can see the landing the whole way around.",
+          difficulty: 3,
+          difficultyLabel: 'Intermediate',
+          prereq: 'Ollie, frontside kickturns',
+          terrain: 'Flat, curbs, banks',
+          credit: {
+            by: 'Braille Skateboarding',
+            url: 'https://www.youtube.com/watch?v=__u6Kdqa0WA',
+            title: 'Slow Motion Frontside 180'
+          },
+          phases: [
+            {
+              name: 'Wind Up',
+              range: [0, 2.5],
+              desc: "Set up for an ollie and crouch. As you crouch, twist your shoulders backside, away from the direction you'll spin. The wind-up is where the rotation comes from.",
+              tip: 'The deeper the wind-up, the easier the full 180 gets.'
+            },
+            {
+              name: 'Pop',
+              range: [2.25, 3.5],
+              desc: "Pop like a normal ollie and unwind your shoulders frontside at the same moment, so your chest opens toward the direction you're rolling.",
+              tip: 'Your shoulders turn first and your hips and the board follow.'
+            },
+            {
+              name: 'Turn',
+              range: [3.25, 5.5],
+              desc: "Slide your front foot up and use it to guide the nose around while your body rotates. Look over your front shoulder at the spot where you'll land.",
+              tip: 'Your head leads the turn. Wherever you look, your body follows.'
+            },
+            {
+              name: 'Land',
+              range: [5.25, 7.25],
+              desc: 'Finish the 180 and land with both feet over the bolts, riding fakie. Bend your knees and keep your weight centered.',
+              tip: 'Leaning back on the landing is the most common way to slip out. Keep your weight over the bolts.'
+            },
+            {
+              name: 'Ride Away',
+              range: [7, 9.6],
+              desc: 'Roll away fakie with your shoulders now lined up with the board again. If you over-rotated, pivot the rest of the way on your back wheels.',
+              tip: 'A clean ride-away matters more than a perfect 180 at first.'
+            }
+          ],
+          drills: [
+            {
+              name: 'FS Kickturns',
+              reps: '3 × 10',
+              desc: 'Roll slowly and do frontside 180 kickturns into fakie. Your shoulders make exactly the same motion as in the real trick.',
+              goal: 'A smooth half turn in one motion.'
+            },
+            {
+              name: 'No-Board 180 Jumps',
+              reps: '10 reps',
+              desc: 'Without a board, crouch, wind up your shoulders, and jump a frontside 180. It trains your body to rotate fully before your feet land.',
+              goal: 'Land facing exactly the other way.'
+            },
+            {
+              name: 'Stationary FS 180s',
+              reps: '3 × 10',
+              desc: 'On grass, do the full trick in place. Even 90 degrees counts at first. Add a few degrees each set.',
+              goal: 'Land a full 180 on the bolts.'
+            }
+          ],
+          tutorials: [
+            {
+              id: 's-Tw11EZCv4',
+              title: 'How To: Frontside 180',
+              channel: 'VLSkate',
+              why: 'The most-watched FS 180 tutorial, clear and well paced.'
+            },
+            {
+              id: 'AxhFm3ctDkE',
+              title: 'How to Frontside 180 - Beginner Tutorial (Slow Motion)',
+              channel: 'Skiddy Skates',
+              why: 'Slow-motion close-ups of the shoulders and feet.'
+            },
+            {
+              id: 'Ize_UuHKxJ4',
+              title: 'How To: Frontside 180',
+              channel: "Tom's Tutorials",
+              why: 'A concise progression from kickturns up to the full trick.'
+            },
+            {
+              id: 'Mf_OCykejYk',
+              title: 'How to Do Every 180 on a Skateboard',
+              channel: 'Skate IQ',
+              why: 'Long, but covers FS, BS, and half cab together.'
+            }
+          ]
+        },
+
+        'bs-180': {
+          tab: 'BS 180',
+          name: 'Backside 180',
+          alias: 'The Blind Turn',
+          category: 'Flat ground · Rotation',
+          blurb:
+            "Ollie and turn your back toward the direction you're rolling, spinning a half turn into fakie. You lose sight of the landing for a moment, which makes it feel scarier than the frontside 180, but many people find the motion more natural.",
+          difficulty: 3,
+          difficultyLabel: 'Intermediate',
+          prereq: 'Ollie, backside kickturns',
+          terrain: 'Flat, curbs, gaps',
+          credit: {
+            by: 'Ian Deans',
+            url: 'https://www.youtube.com/watch?v=RYtn93Jlltc',
+            title: 'super slow-mo bs 180 ollie'
+          },
+          phases: [
+            {
+              name: 'Wind Up',
+              range: [0, 1.75],
+              desc: "Crouch into your ollie stance and twist your shoulders frontside, so your chest opens toward the nose. You're loading up the opposite way from the turn.",
+              tip: "Let your front arm swing forward. You'll throw it back during the pop."
+            },
+            {
+              name: 'Pop',
+              range: [1.5, 2.75],
+              desc: "Pop the ollie and turn your shoulders backside at the same moment, so your back starts to face the direction you're rolling.",
+              tip: 'Pop and turn at the same time. Turning after the pop loses most of the rotation.'
+            },
+            {
+              name: 'Turn',
+              range: [2.5, 4],
+              desc: 'Look over your front shoulder and let your hips and the board follow your shoulders around. Your front foot steers the nose.',
+              tip: "Keep your eyes on the ground where you'll land, even though you can't see it for a moment."
+            },
+            {
+              name: 'Land',
+              range: [3.75, 5.25],
+              desc: 'Land fakie with both feet over the bolts and your knees bent. You should be facing the direction you came from.',
+              tip: 'Under-rotated? Finish the turn on your back wheels after you land.'
+            },
+            {
+              name: 'Ride Away',
+              range: [5, 7.5],
+              desc: 'Roll away fakie with your weight centered. Lines can keep going from here, so a half cab is a natural next trick.',
+              tip: 'Ride away for a few feet so the landing becomes muscle memory.'
+            }
+          ],
+          drills: [
+            {
+              name: 'BS Kickturns',
+              reps: '3 × 10',
+              desc: "Roll slowly and do backside 180 kickturns into fakie. It's the same shoulder motion without the pop.",
+              goal: 'A full 180 in one smooth turn.'
+            },
+            {
+              name: 'Look-Back Ollies',
+              reps: '15 tries',
+              desc: 'Do regular ollies, but turn your head and look over your front shoulder at the top of each one. It gets you used to leading with your eyes.',
+              goal: 'Ollie straight while looking over your shoulder.'
+            },
+            {
+              name: 'Stationary BS 180s',
+              reps: '3 × 10',
+              desc: 'Do the trick in place on grass. Start at 90 degrees and add more rotation as it gets comfortable.',
+              goal: 'Land a full 180 on the bolts.'
+            }
+          ],
+          tutorials: [
+            {
+              id: '1-nO4ax-7SI',
+              title: 'How To: Backside 180',
+              channel: 'VLSkate',
+              why: 'The most-watched BS 180 tutorial.'
+            },
+            {
+              id: '1q4cS1yH2II',
+              title: 'How To: Backside 180',
+              channel: "Tom's Tutorials",
+              why: 'A clear, concise breakdown of the shoulder wind-up.'
+            },
+            {
+              id: 'MDY5CfIbcFk',
+              title: 'How to Backside 180 Easily',
+              channel: 'SKATE HACKS',
+              why: 'Beginner-friendly, with simple cues.'
+            },
+            {
+              id: 'Mf_OCykejYk',
+              title: 'How to Do Every 180 on a Skateboard',
+              channel: 'Skate IQ',
+              why: 'Long, but covers FS, BS, and half cab together.'
+            }
+          ]
+        },
+
+        kickflip: {
+          tab: 'Kickflip',
+          name: 'Kickflip',
+          alias: 'The Rite of Passage',
+          category: 'Flat ground · Flip trick',
+          blurb:
+            "Ollie, but drag your front foot off the heel-side corner of the nose so the board flips a full turn underneath you before you catch it. It's the trick everyone wants first, and it takes most people weeks or months. Drills make a big difference.",
+          difficulty: 3,
+          difficultyLabel: 'Intermediate',
+          prereq: 'Ollie, pop shuvit',
+          terrain: 'Flat, curbs, gaps',
+          credit: {
+            by: 'Adam Shomsky',
+            url: 'https://www.youtube.com/watch?v=cC7VEqn-mUM',
+            title: 'Kelly Hart 1000fps slow motion kickflip'
+          },
+          phases: [
+            {
+              name: 'Pop',
+              range: [0, 1],
+              desc: 'Put your back foot on the tail like an ollie. Put your front foot just behind the front bolts, angled about 45 degrees toward the nose. Crouch and pop the tail hard.',
+              tip: "Use the same pop as your ollie. A weak pop is the most common reason a kickflip doesn't flip."
+            },
+            {
+              name: 'Flick',
+              range: [0.75, 2],
+              desc: 'Slide your front foot up and off the heel-side corner of the nose, flicking out and slightly forward. The edge of your shoe catching the corner is what starts the flip.',
+              tip: 'Flick off the corner, not straight off the side. A sideways flick sends the board away from you.'
+            },
+            {
+              name: 'Flip',
+              range: [1.75, 4.25],
+              desc: 'Pull your legs up and out of the way while the board flips once underneath you. Stay over the board with your shoulders level.',
+              tip: 'Keep your eyes on the board. Seeing the grip tape come around tells you when to catch.'
+            },
+            {
+              name: 'Catch',
+              range: [4, 5.75],
+              desc: 'When the grip tape faces up again, catch the board with your back foot first, then your front foot, and push it back down to the ground.',
+              tip: "Catching early stops the spin. That's why the back foot goes down first."
+            },
+            {
+              name: 'Land',
+              range: [5.5, 8.4],
+              desc: 'Land with both feet over the bolts and your knees bent, then roll away.',
+              tip: 'Lots of near misses come from leaning back. Keep your weight centered over the board.'
+            }
+          ],
+          drills: [
+            {
+              name: 'Flick on Grass',
+              reps: '3 × 10',
+              desc: 'Stand on the board on grass or carpet. Pop and flick, and let the board flip on its own while you land on the ground on either side of it.',
+              goal: 'The board flips once and lands with the wheels down.'
+            },
+            {
+              name: 'Hold-On Kickflips',
+              reps: '3 × 10',
+              desc: "Hold a railing or a friend's shoulder and do full kickflips in place. Focus on catching with your back foot first.",
+              goal: 'Land on the bolts with both feet.'
+            },
+            {
+              name: 'Rolling Straddles',
+              reps: '20 tries',
+              desc: 'Roll slowly, kickflip, and land with your feet on the ground on either side of the board. It builds the commitment and timing without the fear of landing on it.',
+              goal: 'The board lands wheels-down right between your feet.'
+            }
+          ],
+          tutorials: [
+            {
+              id: '4XgjDhSnTtE',
+              title: 'How to Kickflip the Easiest Way Tutorial',
+              channel: 'Braille Skateboarding',
+              why: 'The most-watched kickflip tutorial on YouTube. Short and to the point.'
+            },
+            {
+              id: 'dODnfBx_eLQ',
+              title: 'How to Kickflip Tutorial | In-Depth Trick Tip',
+              channel: 'Tactics Boardshop',
+              why: 'A careful explanation of where to put your feet and how to flick.'
+            },
+            {
+              id: '_JJnOdQSgYA',
+              title: 'Quick and Easy Kickflip Tutorial',
+              channel: 'Skate IQ',
+              why: 'A clear beginner progression.'
+            },
+            {
+              id: '6GDJCNESgGQ',
+              title: 'How to Kickflip: An In-depth Analysis and Practice Method',
+              channel: 'Sarah PM',
+              why: 'Pairs well with the drills above, with a full practice routine.'
+            }
+          ]
+        }
+      }
+
+      const $ = (id) => document.getElementById(id)
+      const heroVid = $('heroVid'),
+        clip = $('clip')
+      let trick,
+        phaseIdx = 0,
+        loopRange = null,
+        rate = 0.5
+
+      function renderTrickTabs() {
+        $('trickTabs').innerHTML = Object.entries(TRICKS)
+          .map(([key, t]) => `<button role="tab" data-key="${key}">${t.tab}</button>`)
+          .join('')
+        $('trickTabs').addEventListener('click', (e) => {
+          const b = e.target.closest('button')
+          if (b) location.hash = b.dataset.key
+        })
+      }
+
+      function loadTrick(key) {
+        trick = TRICKS[key] ? key : 'ollie'
+        const t = TRICKS[trick]
+        const src = `media/${trick}.mp4`
+        document.title = `${t.name} · Trick Index`
+        document.querySelectorAll('#trickTabs button').forEach((b) => {
+          const on = b.dataset.key === trick
+          b.setAttribute('aria-selected', on)
+          if (on) b.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+        })
+
+        // hero
+        $('tCategory').textContent = t.category
+        $('tName').textContent = t.name
+        $('tAlias').textContent = t.alias
+        $('tBlurb').textContent = t.blurb
+        $('tDiff').innerHTML =
+          `<span class="dots">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= t.difficulty ? 'on' : ''}"></i>`).join('')}</span>${t.difficultyLabel}`
+        $('tPrereq').textContent = t.prereq
+        $('tTerrain').textContent = t.terrain
+        heroVid.src = src
+        heroVid.playbackRate = 0.75
+        heroVid.play().catch(() => {})
+
+        // steps
+        $('steps').innerHTML = t.phases
+          .map(
+            (p, i) =>
+              `<li><button role="tab" data-i="${i}">
+       <img src="media/${trick}-${i + 1}.jpg" alt="">
+       <span class="lbl"><span class="num">0${i + 1}</span><span class="name">${p.name}</span></span>
+     </button></li>`
+          )
+          .join('')
+        clip.src = src
+        selectPhase(0)
+
+        // drills
+        $('drillList').innerHTML = t.drills
+          .map(
+            (d, i) =>
+              `<article class="drill">
+       <div class="drill-top"><span class="drill-num">drill_0${i + 1}</span><span class="reps">${d.reps}</span></div>
+       <h3>${d.name}</h3>
+       <p>${d.desc}</p>
+       <p class="goal"><b>Goal:</b> ${d.goal}</p>
+     </article>`
+          )
+          .join('')
+
+        // tutorials
+        $('cards').innerHTML = t.tutorials
+          .map(
+            (v) =>
+              `<a class="card" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">
+       <div class="thumb"><img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg" alt="" loading="lazy"></div>
+       <div class="chan">${v.channel}</div>
+       <h3>${v.title}</h3>
+       <p>${v.why}</p>
+     </a>`
+          )
+          .join('')
+
+        $('credits').innerHTML =
+          `Slow-motion clip from <a href="${t.credit.url}" target="_blank" rel="noopener">${t.credit.title}</a> by ${t.credit.by}. Tutorial videos belong to their creators.`
+      }
+
+      function selectPhase(i) {
+        phaseIdx = i
+        const phases = TRICKS[trick].phases,
+          p = phases[i]
+        document.querySelectorAll('#steps button').forEach((b) => b.setAttribute('aria-selected', +b.dataset.i === i))
+        $('pCount').textContent = `step ${String(i + 1).padStart(2, '0')} / ${String(phases.length).padStart(2, '0')}`
+        $('pName').textContent = p.name
+        $('pDesc').textContent = p.desc
+        $('pTip').innerHTML = `<b>Tip:</b> ${p.tip}`
+        $('fullBtn').setAttribute('aria-pressed', 'false')
+        setLoop(p.range)
+      }
+
+      function setLoop(range) {
+        loopRange = range
+        const seek = () => {
+          clip.currentTime = range ? range[0] : 0
+          clip.playbackRate = rate
+          clip.play().catch(() => {})
+        }
+        clip.readyState >= 1 ? seek() : clip.addEventListener('loadedmetadata', seek, { once: true })
+      }
+
+      function tick() {
+        if (clip.duration) {
+          const [a, b] = loopRange || [0, clip.duration - 0.05]
+          if (clip.currentTime >= b || clip.ended) {
+            clip.currentTime = a
+            clip.play().catch(() => {})
+          }
+          $('prog').style.width = `${Math.max(0, Math.min(100, ((clip.currentTime - a) / (b - a)) * 100))}%`
+        }
+        requestAnimationFrame(tick)
+      }
+
+      function setRate(r) {
+        rate = r
+        clip.playbackRate = r
+        document.querySelectorAll('[data-rate]').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.rate === r))
+      }
+
+      $('steps').addEventListener('click', (e) => {
+        const b = e.target.closest('button')
+        if (b) selectPhase(+b.dataset.i)
+      })
+      $('fullBtn').addEventListener('click', () => {
+        document.querySelectorAll('#steps button').forEach((b) => b.setAttribute('aria-selected', 'false'))
+        $('fullBtn').setAttribute('aria-pressed', 'true')
+        $('pCount').textContent = 'whole trick'
+        setLoop(null)
+      })
+      document
+        .querySelectorAll('[data-rate]')
+        .forEach((b) => b.addEventListener('click', () => setRate(+b.dataset.rate)))
+      // size both frames to the clip's native shape so nothing gets cropped
+      clip.addEventListener('loadedmetadata', () => {
+        heroVid.style.aspectRatio = clip.style.aspectRatio = `${clip.videoWidth} / ${clip.videoHeight}`
+      })
+      window.addEventListener('hashchange', () => loadTrick(location.hash.slice(1)))
+
+      renderTrickTabs()
+      setRate(0.5)
+      loadTrick(location.hash.slice(1))
+      requestAnimationFrame(tick)
+    </script>
+  </body>
+</html>

@@ -72,6 +72,15 @@ export const tools: Tool[] = [
       'Drop an .ics invite and get an “add to Google Calendar” link for each event in it, with the title, description, location and recurrence carried over. Keeps an event’s own time zone rather than converting to UTC, so a weekly meeting stays at the same local time after a DST change, and maps the Windows zone names Outlook writes to real ones.'
   },
   {
+    name: 'Raw Film Lab',
+    category: 'html',
+    href: 'https://tools.evanyoung.dev/raw-film-lab/',
+    source: 'https://github.com/EvanDavidYoung/tools/tree/main/raw-film-lab',
+    note: 'Not a single file: ships a 1 MB WebAssembly build of LibRaw',
+    description:
+      'Develop GoPro .GPR, iPhone ProRAW and most camera RAW files in the browser, adjust exposure, tone and white balance, then apply a film-stock LUT and export. LibRaw normally needs the Adobe DNG SDK to read GoPro’s VC-5 codec; a small patch calls GoPro’s own decoder instead, and the result is bit-identical to Adobe DNG Converter’s. Ships with 28 film LUTs from the RawTherapee collection and takes your own HaldCLUT or .cube files.'
+  },
+  {
     name: 'Guitar tab ripper',
     category: 'html',
     href: 'https://evanyoung.dev/ugrip/',

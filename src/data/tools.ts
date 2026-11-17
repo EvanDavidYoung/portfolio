@@ -64,6 +64,15 @@ export const tools: Tool[] = [
       'Read along with spoken Mandarin word by word, in simplified or traditional, then loop a sentence or have it pause after each one so you can repeat it out loud. Four articles are bundled; paste your own text and it generates the audio a sentence at a time, so the sentence boundaries the drill depends on are exact.'
   },
   {
+    name: 'Chinese TTS comparison',
+    category: 'html',
+    href: 'https://tools.evanyoung.dev/compare-chinese-tts/',
+    source: 'https://github.com/EvanDavidYoung/tools/tree/main/compare-chinese-tts',
+    note: 'Bundled samples work without a key; new text needs your own OpenRouter key',
+    description:
+      'Play the same Mandarin sentence through every text-to-speech model on OpenRouter, then judge them in blind pairs and rank them with Bradley-Terry. Thirteen test sentences each isolate one failure mode, such as tone sandhi, polyphones, erhua, number reading or code switching, and each comes with a checklist of the exact readings to listen for. Five engines’ readings of every sentence are pre-recorded, so you can listen and vote without a key.'
+  },
+  {
     name: 'ICS to Google Calendar',
     category: 'html',
     href: 'https://tools.evanyoung.dev/ics-to-gcal/',

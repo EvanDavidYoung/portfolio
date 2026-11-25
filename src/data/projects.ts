@@ -51,10 +51,10 @@ export const projects: Project[] = [
     media: {
       type: 'image',
       src: '/projects/climbing-studio.webp',
-      alt: 'Clip Studio: a bouldering video with the detector\'s climbing probability and suggested segments on the timeline'
+      alt: "Clip Studio: a bouldering video with the detector's climbing probability and suggested segments on the timeline"
     },
     description:
-      'Finds the spans of a climbing video where the climber is off the ground, so hours of gym footage become short clips. Pose tracking is calibrated per video to its own floor and the climber\'s size, then an HMM turns per-frame scores into segments. The studio is where I review the suggestions, fix the edges, and cut. The demo runs on real footage and detector output, with the jobs simulated in your browser.'
+      "Finds the spans of a climbing video where the climber is off the ground, so hours of gym footage become short clips. Pose tracking is calibrated per video to its own floor and the climber's size, then an HMM turns per-frame scores into segments. The studio is where I review the suggestions, fix the edges, and cut. The demo runs on real footage and detector output, with the jobs simulated in your browser."
   },
   {
     name: 'Transcription pipeline',

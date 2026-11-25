@@ -60,8 +60,8 @@ tests/test_runner.py
 
 There are two unrelated things in here:
 
-* **`src/pipeline/`** is the Python package: the Slack → Drive backup plus the enrichment stage. It's almost everything, and it's what sections 2–8 cover.
-* **`digital-garden-canvas/`** is a small React + Excalidraw prototype that sits on the `canvas-feature` branch. Section 9 covers it briefly.
+- **`src/pipeline/`** is the Python package: the Slack → Drive backup plus the enrichment stage. It's almost everything, and it's what sections 2–8 cover.
+- **`digital-garden-canvas/`** is a small React + Excalidraw prototype that sits on the `canvas-feature` branch. Section 9 covers it briefly.
 
 `main.py` at the root is the leftover `uv init` stub and nothing calls it. The real entry point is declared in `pyproject.toml`:
 
@@ -94,18 +94,18 @@ It all starts with `.github/workflows/daily-backup.yml`. It runs at 06:00 UTC ev
 ```yaml
 on:
   schedule:
-    - cron: "0 6 * * *"  # 06:00 UTC daily
-  workflow_dispatch:       # allow manual trigger from Actions UI
+    - cron: '0 6 * * *' # 06:00 UTC daily
+  workflow_dispatch: # allow manual trigger from Actions UI
     inputs:
       full:
-        description: "Backfill: re-fetch all history instead of the incremental window"
+        description: 'Backfill: re-fetch all history instead of the incremental window'
         type: boolean
         default: false
 
 jobs:
   backup:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # a cold GPU costs ~15 min; a full backfill needs the rest
+    timeout-minutes: 360 # a cold GPU costs ~15 min; a full backfill needs the rest
 ```
 
 The runner is a fresh Ubuntu VM, so the first steps rebuild the environment. They install the latest `slackdump` release binary and then restore the Slack credentials from two base64 secrets. `slackdump` keeps its login as an encrypted `<workspace>.bin` file plus a `workspace.txt` naming the active workspace, and both have to land in `~/.cache/slackdump`:
@@ -113,21 +113,20 @@ The runner is a fresh Ubuntu VM, so the first steps rebuild the environment. The
 `.github/workflows/daily-backup.yml`
 
 ```yaml
+- name: Install slackdump
+  run: |
+    LATEST=$(curl -s https://api.github.com/repos/rusq/slackdump/releases/latest | jq -r '.tag_name')
+    curl -fsSL "https://github.com/rusq/slackdump/releases/download/${LATEST}/slackdump_Linux_x86_64.tar.gz" \
+      | tar xz slackdump
+    sudo mv slackdump /usr/local/bin/
 
-      - name: Install slackdump
-        run: |
-          LATEST=$(curl -s https://api.github.com/repos/rusq/slackdump/releases/latest | jq -r '.tag_name')
-          curl -fsSL "https://github.com/rusq/slackdump/releases/download/${LATEST}/slackdump_Linux_x86_64.tar.gz" \
-            | tar xz slackdump
-          sudo mv slackdump /usr/local/bin/
-
-      - name: Restore slackdump workspace credentials
-        run: |
-          CACHE_DIR="$HOME/.cache/slackdump"
-          mkdir -p "$CACHE_DIR"
-          WORKSPACE_FILE=$(echo "${{ secrets.SLACKDUMP_WORKSPACE_TXT_B64 }}" | base64 -d)
-          echo "$WORKSPACE_FILE" > "$CACHE_DIR/workspace.txt"
-          echo "${{ secrets.SLACKDUMP_WORKSPACE_B64 }}" | base64 -d > "$CACHE_DIR/$WORKSPACE_FILE.bin"
+- name: Restore slackdump workspace credentials
+  run: |
+    CACHE_DIR="$HOME/.cache/slackdump"
+    mkdir -p "$CACHE_DIR"
+    WORKSPACE_FILE=$(echo "${{ secrets.SLACKDUMP_WORKSPACE_TXT_B64 }}" | base64 -d)
+    echo "$WORKSPACE_FILE" > "$CACHE_DIR/workspace.txt"
+    echo "${{ secrets.SLACKDUMP_WORKSPACE_B64 }}" | base64 -d > "$CACHE_DIR/$WORKSPACE_FILE.bin"
 ```
 
 The final step runs everything in **one process**. The comment explains why: the GPU starts warming at the top of the run, and enrichment reads attachments straight off the temp export before it's deleted, instead of downloading them back from Drive.
@@ -135,25 +134,25 @@ The final step runs everything in **one process**. The comment explains why: the
 `.github/workflows/daily-backup.yml`
 
 ```yaml
-      - name: Install Python dependencies
-        run: uv sync
+- name: Install Python dependencies
+  run: uv sync
 
-      - name: Run backup and enrichment
-        env:
-          SLACKDUMP_MACHINE_ID: ${{ secrets.SLACKDUMP_MACHINE_ID }}
-          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
-          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
-          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
-          # Enrichment: vision + text on the vllm-secondbrain A100.
-          VLLM_BASE_URL: ${{ secrets.VLLM_BASE_URL }}
-          VLLM_API_KEY: ${{ secrets.VLLM_API_KEY }}
-          # Audio/video transcription on the podcast-transcriber Modal app.
-          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
-        # One step, one process: the GPU starts warming at the top of the run
-        # and enrichment reads attachments off the temp export before it is
-        # deleted, rather than re-downloading them from Drive.
-        run: uv run pipeline backup --enrich ${{ inputs.full && '--full' || '' }}
+- name: Run backup and enrichment
+  env:
+    SLACKDUMP_MACHINE_ID: ${{ secrets.SLACKDUMP_MACHINE_ID }}
+    GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+    GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+    GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+    # Enrichment: vision + text on the vllm-secondbrain A100.
+    VLLM_BASE_URL: ${{ secrets.VLLM_BASE_URL }}
+    VLLM_API_KEY: ${{ secrets.VLLM_API_KEY }}
+    # Audio/video transcription on the podcast-transcriber Modal app.
+    MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+    MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+  # One step, one process: the GPU starts warming at the top of the run
+  # and enrichment reads attachments off the temp export before it is
+  # deleted, rather than re-downloading them from Drive.
+  run: uv run pipeline backup --enrich ${{ inputs.full && '--full' || '' }}
 ```
 
 `SLACKDUMP_MACHINE_ID` matters. `slackdump` encrypts its credential file with a key derived from the machine ID, and a GitHub runner's machine ID is different from the laptop where you logged in. The README covers the setup: log in locally with `-machine-id=<uuid>`, then pass the same UUID in CI. Section 3.2 shows where the pipeline uses it.
@@ -581,7 +580,7 @@ def ingest_daily(
 
 `vault.write_ingest_file` adds YAML frontmatter (`created`, optional `edited`, `channel`, `source`). With `append=True` it strips the old frontmatter and appends the new lines to the existing body. The daily-backup path always writes into a fresh temp dir, so it never appends. That mode exists for the legacy `ingest` command (section 7).
 
-Here's the whole markdown path on a tiny synthetic export. A reply posted *after* an unrelated message still ends up tucked under its parent, and the image attachment links to its Drive URL:
+Here's the whole markdown path on a tiny synthetic export. A reply posted _after_ an unrelated message still ends up tucked under its parent, and the image attachment links to its Drive URL:
 
 ```python
 import json, tempfile
@@ -771,7 +770,7 @@ MEDIA_TIMEOUT = 1800
 
 ### 4.3 The warm-up that started back in 3.2 (`enrich/llm.py`)
 
-`LLMRouter` builds one `EndpointClient` per *distinct* endpoint. Both routes point at `secondbrain`, so there's exactly one client and one GPU to wake. `start_warm()` spawns a daemon thread and returns immediately:
+`LLMRouter` builds one `EndpointClient` per _distinct_ endpoint. Both routes point at `secondbrain`, so there's exactly one client and one GPU to wake. `start_warm()` spawns a daemon thread and returns immediately:
 
 `src/pipeline/enrich/llm.py`
 
@@ -880,10 +879,10 @@ PROCESSORS = [
 
 `run_enrichment` loads the enrichment state index (`SlackBackup/.enrich-state.json`, one entry per note id) and asks `_plan_for` about each message. The answer is a pair, `(should_process, allow_llm)`:
 
-* **no entry** → new message: process it, LLM allowed.
-* **`unprocessed`** (a hard failure last time) → retry with LLM, up to `MAX_ATTEMPTS = 5`, then give up.
-* **processed with warnings under 7 days old** → re-check it **without** the LLM. A YouTube AI summary often appears days after upload, and the re-scrape is free. Re-billing an already-successful summary is not.
-* **processed and clean, or only stale warnings** → skip.
+- **no entry** → new message: process it, LLM allowed.
+- **`unprocessed`** (a hard failure last time) → retry with LLM, up to `MAX_ATTEMPTS = 5`, then give up.
+- **processed with warnings under 7 days old** → re-check it **without** the LLM. A YouTube AI summary often appears days after upload, and the re-scrape is free. Re-billing an already-successful summary is not.
+- **processed and clean, or only stale warnings** → skip.
 
 `src/pipeline/enrich/runner.py`
 
@@ -1047,7 +1046,7 @@ The runner then fans each note out into `WorkItem`s, one per (processor, target)
 
 ### 4.6 The processor contract
 
-`processors/base.py` defines the protocol that makes batching possible. **A processor never calls the model itself.** It gathers inputs, *declares* the `Call`s it wants, and later turns the responses into fields:
+`processors/base.py` defines the protocol that makes batching possible. **A processor never calls the model itself.** It gathers inputs, _declares_ the `Call`s it wants, and later turns the responses into fields:
 
 `src/pipeline/enrich/processors/base.py`
 
@@ -1110,8 +1109,8 @@ class Processor(Protocol):
 
 The two-tier failure model runs through everything that follows:
 
-* **Soft** failures are `Result.warnings`. The note is still `processed`, and the warning just records what's missing (and may drive a free re-check later).
-* **Hard** failures are `ProcessorError`. The note is written as `unprocessed` and fully retried next run.
+- **Soft** failures are `Result.warnings`. The note is still `processed`, and the warning just records what's missing (and may drive a free re-check later).
+- **Hard** failures are `ProcessorError`. The note is written as `unprocessed` and fully retried next run.
 
 Phase 1 runs `gather()` and `llm_calls()` for every item on an 8-thread pool, and catches every exception per item so that one buggy processor can't sink the run:
 
@@ -1225,7 +1224,7 @@ SYSTEM = "You transcribe and describe images accurately. You reply with JSON onl
         return result
 ```
 
-#### `LinkProcessor`: one fetch, then article *or* YouTube treatment
+#### `LinkProcessor`: one fetch, then article _or_ YouTube treatment
 
 `link.py` composes three helper modules so that a URL is fetched **once**. `link_metadata.fetch` streams the page with a 2 MB cap. `parse_og` pulls Open Graph tags with regexes (deliberately no HTML-parser dependency). After that the link branches. The fetch step also decides the failure tier: a network error or 5xx is transient, so it raises and gets a full retry, while a 404 or a non-HTML body won't fix itself, so it only warns:
 
@@ -1337,7 +1336,7 @@ text      : 'Fallback title \n\nGardens\n Notes that grow & change.\n\nSecond pa
         gathered["fields"]["youtube"] = video
 ```
 
-The YouTube helpers handle every URL shape a video link can take. Caption tracks can't be sliced out with a regex, because the entries contain nested arrays, so `_json_array_after` walks bracket depth while tracking string and escape state. `fetch_transcript` returns a reason code with every miss. `captions_withheld` (a 200 with an empty body) is the *normal* case for unauthenticated requests, and that code keeps it distinguishable from "this video has no captions":
+The YouTube helpers handle every URL shape a video link can take. Caption tracks can't be sliced out with a regex, because the entries contain nested arrays, so `_json_array_after` walks bracket depth while tracking string and escape state. `fetch_transcript` returns a reason code with every miss. `captions_withheld` (a 200 with an empty body) is the _normal_ case for unauthenticated requests, and that code keeps it distinguishable from "this video has no captions":
 
 ```python
 from pipeline.enrich.processors.youtube import extract_youtube_id, _json_array_after, parse_description
@@ -1362,7 +1361,7 @@ description: 'Line one\nCafé "quoted"'
 
 (In the article demo above, `<nav>`, `<script>` and `<footer>` are gone, but the `<title>` text survives into the body because `<head>` isn't in the drop list. That's harmless for a summary prompt that repeats the title anyway, but it's a quirk worth knowing about.)
 
-The link's `finish()` folds in the summary. An *unreachable* model is a hard failure and not a warning, because the free warning sweep never re-issues LLM calls. If this were only a warning, the summary would never get retried:
+The link's `finish()` folds in the summary. An _unreachable_ model is a hard failure and not a warning, because the free warning sweep never re-issues LLM calls. If this were only a warning, the summary would never get retried:
 
 `src/pipeline/enrich/processors/link.py`
 
@@ -1388,7 +1387,7 @@ The link's `finish()` folds in the summary. An *unreachable* model is a hard fai
 
 #### `MediaTranscript`: audio → the `podcast-transcriber` Modal app
 
-Transcription runs on a separate Modal app (WhisperX on a T4), not on the chat model. So `llm_calls()` returns nothing, and the job is *spawned* during `gather()` (phase 1) and *collected* in `finish()` (phase 3). That way the T4 boots and transcribes in parallel with everything else. Video is carried on the note but not transcribed unless `ENRICH_TRANSCRIBE_VIDEO` is set, because the Modal function would decode whole video containers to reach the audio. `applies()` also returns `False` in the free retry sweep, since a T4 run costs money too:
+Transcription runs on a separate Modal app (WhisperX on a T4), not on the chat model. So `llm_calls()` returns nothing, and the job is _spawned_ during `gather()` (phase 1) and _collected_ in `finish()` (phase 3). That way the T4 boots and transcribes in parallel with everything else. Video is carried on the note but not transcribed unless `ENRICH_TRANSCRIBE_VIDEO` is set, because the Modal function would decode whole video containers to reach the audio. `applies()` also returns `False` in the free retry sweep, since a T4 run costs money too:
 
 `src/pipeline/enrich/processors/media_transcript.py`
 
@@ -1553,11 +1552,11 @@ def _content_of(data: dict) -> str:
 
 Model responses are parsed with `parse_json_object`, which tolerates code fences and chatter around the object:
 
-```python
+````python
 from pipeline.enrich.llm import parse_json_object
 print(parse_json_object('Sure! ```json\n{"text": "hello", "caption": "a sign"}\n``` hope that helps'))
 print(parse_json_object('no json here'))
-```
+````
 
 ```text
 {'text': 'hello', 'caption': 'a sign'}
@@ -1790,7 +1789,7 @@ def relative_path(note_id: str) -> str:
 
 Status is a field, not a folder, so flipping `unprocessed` → `processed` is one in-place write and can't half-fail as a move. The state index exists so that `_plan_for` costs **one** Drive download per run, instead of one round trip per note.
 
-> **An observation from tracing this.** `_plan_for` expires a warning once its `last_attempt` is 7+ days old. But `_merge_warnings` takes the *incoming* warning, which has a fresh `last_attempt`, and only carries `attempts` forward. On a daily cron, a warning that never clears (`youtube.transcript: captions_withheld` is described as the *normal* outcome) gets a new timestamp every day, so it never goes stale and the note is re-fetched forever. The re-fetch is free of LLM cost, but the number of such notes only grows. `attempts` *is* tracked, but nothing reads it for expiry. Nothing in the tests covers expiry. A daily sweep, simulated:
+> **An observation from tracing this.** `_plan_for` expires a warning once its `last_attempt` is 7+ days old. But `_merge_warnings` takes the _incoming_ warning, which has a fresh `last_attempt`, and only carries `attempts` forward. On a daily cron, a warning that never clears (`youtube.transcript: captions_withheld` is described as the _normal_ outcome) gets a new timestamp every day, so it never goes stale and the note is re-fetched forever. The re-fetch is free of LLM cost, but the number of such notes only grows. `attempts` _is_ tracked, but nothing reads it for expiry. Nothing in the tests covers expiry. A daily sweep, simulated:
 
 ```python
 from datetime import datetime, timedelta, timezone
@@ -1904,9 +1903,9 @@ The `enrich` command runs the same `run_enrichment` against an export directory 
 
 `pipeline ingest` predates the Drive backup. It converts a local export into an Obsidian-style vault at `~/Desktop/slack-second-brain/ingest/`, with a hard-coded treatment per channel:
 
-* **daily** channels get one file per day (the same `ingest_daily` the backup uses),
-* **single-file** channels (a trip-planning channel) get everything in one file with `## day` headings,
-* **misc** channels (`random`, `whatever`) are merged into `YYYY-MM-DD-misc.md`, and days with fewer than 3 messages are dropped.
+- **daily** channels get one file per day (the same `ingest_daily` the backup uses),
+- **single-file** channels (a trip-planning channel) get everything in one file with `## day` headings,
+- **misc** channels (`random`, `whatever`) are merged into `YYYY-MM-DD-misc.md`, and days with fewer than 3 messages are dropped.
 
 It tracks progress with a local `.pipeline-state.json` holding `last_ingested_ts` (written atomically via a temp file and `replace`), and it's the only caller that uses `write_ingest_file`'s append mode:
 
@@ -2096,18 +2095,21 @@ Placing a site waits for its picture and for the fonts its text needs. Excalidra
 `digital-garden-canvas/src/App.tsx`
 
 ```tsx
-  const placeSite = useCallback(async (site: Site, clientX: number, clientY: number) => {
-    if (!api) return;
-    const [image] = await Promise.all([loadSiteImage(site), loadCardFonts(site)]);
-    const { x, y } = viewportCoordsToSceneCoords({ clientX, clientY }, api.getAppState());
-    if (image) api.addFiles([image.file]);
-    const index = SITES.findIndex(s => s.id === site.id);
-    const elements = buildSiteElements(site, index, x - CARD_WIDTH / 2, y - 24, image);
+const placeSite = useCallback(
+  async (site: Site, clientX: number, clientY: number) => {
+    if (!api) return
+    const [image] = await Promise.all([loadSiteImage(site), loadCardFonts(site)])
+    const { x, y } = viewportCoordsToSceneCoords({ clientX, clientY }, api.getAppState())
+    if (image) api.addFiles([image.file])
+    const index = SITES.findIndex((s) => s.id === site.id)
+    const elements = buildSiteElements(site, index, x - CARD_WIDTH / 2, y - 24, image)
     api.updateScene({
       elements: [...api.getSceneElementsIncludingDeleted(), ...elements],
-      captureUpdate: CaptureUpdateAction.IMMEDIATELY,
-    });
-  }, [api]);
+      captureUpdate: CaptureUpdateAction.IMMEDIATELY
+    })
+  },
+  [api]
+)
 ```
 
 `siteCard.buildSiteElements` lays the card out top to bottom with a `cursor` (optional image scaled to at most 150px tall, the name in Excalifont, the host, an optional wrapped description), then sizes a rounded rectangle to fit. The rectangle goes first in the element list so it renders underneath, and it carries the site URL as its Excalidraw `link`:
@@ -2116,27 +2118,27 @@ Placing a site waits for its picture and for the fonts its text needs. Excalidra
 
 ```ts
 export function buildSiteElements(site: Site, index: number, x: number, y: number, image: LoadedImage | null) {
-  const groupId = `site-group-${site.id}-${Date.now()}`;
-  const common = { groupIds: [groupId], customData: { siteId: site.id } };
-  const children: Parameters<typeof convertToExcalidrawElements>[0] = [];
+  const groupId = `site-group-${site.id}-${Date.now()}`
+  const common = { groupIds: [groupId], customData: { siteId: site.id } }
+  const children: Parameters<typeof convertToExcalidrawElements>[0] = []
 
-  let cursor = y + PAD;
+  let cursor = y + PAD
 
   const box = {
     ...common,
-    type: "rectangle" as const,
+    type: 'rectangle' as const,
     x,
     y,
     width: CARD_WIDTH,
     height: cursor + PAD - y,
     backgroundColor: FILLS[index % FILLS.length],
-    fillStyle: "solid" as const,
+    fillStyle: 'solid' as const,
     roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
-    link: site.url,
-  };
+    link: site.url
+  }
 
   // Box first so it sits underneath its contents.
-  return convertToExcalidrawElements([box, ...children]);
+  return convertToExcalidrawElements([box, ...children])
 }
 ```
 
@@ -2148,25 +2150,25 @@ export function buildSiteElements(site: Site, index: number, x: number, y: numbe
 /** True when the viewport point is over Excalidraw's drawing surface, not
  *  over its toolbars, menus or this sidebar. */
 function isOverCanvas(clientX: number, clientY: number) {
-  const el = document.elementFromPoint(clientX, clientY);
-  return el instanceof HTMLCanvasElement && !!el.closest(".excalidraw");
+  const el = document.elementFromPoint(clientX, clientY)
+  return el instanceof HTMLCanvasElement && !!el.closest('.excalidraw')
 }
-  const onPointerMove = (e: React.PointerEvent) => {
-    const d = drag.current;
-    if (!d) return;
-    if (!d.active && Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < DRAG_THRESHOLD) return;
-    d.active = true;
-    setGhost({ site: d.site, x: e.clientX - d.offX, y: e.clientY - d.offY, width: d.width });
-  };
+const onPointerMove = (e: React.PointerEvent) => {
+  const d = drag.current
+  if (!d) return
+  if (!d.active && Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < DRAG_THRESHOLD) return
+  d.active = true
+  setGhost({ site: d.site, x: e.clientX - d.offX, y: e.clientY - d.offY, width: d.width })
+}
 
-  const onPointerUp = (e: React.PointerEvent) => {
-    const d = drag.current;
-    drag.current = null;
-    setGhost(null);
-    if (!d) return;
-    if (!d.active) onPick(d.site);
-    else if (isOverCanvas(e.clientX, e.clientY)) onDrop(d.site, e.clientX, e.clientY);
-  };
+const onPointerUp = (e: React.PointerEvent) => {
+  const d = drag.current
+  drag.current = null
+  setGhost(null)
+  if (!d) return
+  if (!d.active) onPick(d.site)
+  else if (isOverCanvas(e.clientX, e.clientY)) onDrop(d.site, e.clientX, e.clientY)
+}
 ```
 
 ## Recap
@@ -2176,8 +2178,7 @@ function isOverCanvas(clientX: number, clientY: number) {
 3. **Export** incrementally (last run − 3 days) with slackdump into a temp dir.
 4. **Mirror** the raw export to Drive and build `slack_file_id → Drive URL`.
 5. **Parse** each channel into `Message`s (URLs extracted before cleaning) and write **daily markdown** with threads grouped and attachments linked to Drive.
-6. **Enrich** `#fleeting-notes` and `#media`: plan per note from the state index → *gather* (scrape, preprocess, spawn transcriptions) → one 16-wide **LLM burst** → *finish*, then **merge** losslessly with existing notes → write JSON notes plus the state index.
+6. **Enrich** `#fleeting-notes` and `#media`: plan per note from the state index → _gather_ (scrape, preprocess, spawn transcriptions) → one 16-wide **LLM burst** → _finish_, then **merge** losslessly with existing notes → write JSON notes plus the state index.
 7. **Upload** the markdown, record `last_run_date`, and let the temp dir vanish.
 
 The design is shaped by two things. Cost: wake one GPU once, overlap its boot with I/O, and keep it saturated. Resilience: best-effort processors, a soft/hard failure split, lossless merges, and enrichment that can never break the backup.
-

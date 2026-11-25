@@ -38,3 +38,5 @@ coverage/
 *.mp3
 *.wav
 *.pdf
+# Self-contained demo pages, kept as authored
+public/demos/

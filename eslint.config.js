@@ -24,6 +24,11 @@ export default [
       'astro/no-set-html-directive': 'off'
     }
   },
+  {
+    // CLI scripts print their results
+    files: ['scripts/**'],
+    rules: { 'no-console': 'off' }
+  },
   prettier,
   {
     ignores: [

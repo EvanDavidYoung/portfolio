@@ -90,6 +90,14 @@ export const tools: Tool[] = [
       'Develop GoPro .GPR, iPhone ProRAW and most camera RAW files in the browser, adjust exposure, tone and white balance, then apply a film-stock LUT and export. LibRaw normally needs the Adobe DNG SDK to read GoPro’s VC-5 codec; a small patch calls GoPro’s own decoder instead, and the result is bit-identical to Adobe DNG Converter’s. Ships with 28 film LUTs from the RawTherapee collection and takes your own HaldCLUT or .cube files.'
   },
   {
+    name: 'Kerina tab player',
+    category: 'html',
+    href: 'https://tools.evanyoung.dev/kerina/',
+    source: 'https://github.com/EvanDavidYoung/tools',
+    description:
+      'A Songsterr-style player for one fingerpicked song, transcribed from two pages of handwritten tab. Plays it back with a Karplus–Strong plucked-string synth tuned to D G D F♯ A D with a capo, follows along on a fretboard, and loops any section at any tempo. Notes are edited in place by double-clicking them, and the whole tab is plain text underneath.'
+  },
+  {
     name: 'Guitar tab ripper',
     category: 'html',
     href: 'https://evanyoung.dev/ugrip/',

@@ -78,7 +78,7 @@ export const tools: Tool[] = [
     href: 'https://tools.evanyoung.dev/ics-to-gcal/',
     source: 'https://github.com/EvanDavidYoung/tools',
     description:
-      'Drop an .ics invite and get an “add to Google Calendar” link for each event in it, with the title, description, location and recurrence carried over. Keeps an event’s own time zone rather than converting to UTC, so a weekly meeting stays at the same local time after a DST change, and maps the Windows zone names Outlook writes to real ones.'
+      'Drop an .ics invite and get an “add to Google Calendar” link for each event in it, with the title, description, location and recurrence carried over. No .ics file? Drop or paste a screenshot of the invite instead: Workers AI (behind a password) or Claude (with your own API key, sent straight from the browser to Anthropic) reads the event out of it for you to check and edit before making the link. Keeps an event’s own time zone rather than converting to UTC, so a weekly meeting stays at the same local time after a DST change, and maps the Windows zone names Outlook writes to real ones.'
   },
   {
     name: 'Raw Film Lab',
